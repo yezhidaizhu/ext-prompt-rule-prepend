@@ -1,11 +1,12 @@
 {
-  "name": "wxt-vue-starter",
-  "description": "manifest.json description",
+  "name": "prompt-rule-prepend",
+  "description": "在 AI 聊天发送前自动注入自定义指令与规则，弥补平台缺少系统提示词的不足。支持 DeepSeek、ChatGPT、Claude 等多平台管理。",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
+    "dev:ui": "vite",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
@@ -15,11 +16,20 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@floating-ui/vue": "^2.0.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "@vueuse/core": "^14.3.0",
+    "lodash-es": "^4.17.21",
+    "pinia": "^3.0.4",
+    "tailwindcss": "^4.3.1",
     "vue": "^3.5.29"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "@vitejs/plugin-vue": "^6.0.7",
     "@wxt-dev/module-vue": "^1.0.3",
     "typescript": "^5.9.3",
+    "vite": "^8.0.16",
     "vue-tsc": "^3.2.5",
     "wxt": "^0.20.26"
   },
