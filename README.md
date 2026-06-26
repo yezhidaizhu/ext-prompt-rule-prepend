@@ -1,99 +1,140 @@
-# Prompt Rule Prepend
+# AI Prompt Rule Assistant
 
-给没有自定义指令的平台加一层可管理的「规则列表」。
+A browser extension for managing reusable prompt rules and appending them to AI chat messages before sending.
 
-目标：发送前自动拼接预设规则，减少废话，保持回答简洁、准确、结构化。
+The extension is built with WXT, Vue 3, Pinia, Tailwind CSS 4, and Floating UI.
 
-## 当前阶段
+## What It Does
 
-- 先做独立 Vue 组件调试页。
-- 暂不把 UI 注入真实网站。
-- 平台不写死 DeepSeek，通过 presets 配置。
-- DeepSeek 只是默认示例平台。
+- Manage prompt rules from the extension popup.
+- Enable or disable each rule.
+- Assign rules to specific platforms.
+- Copy, preview, edit, and delete rules.
+- Configure platform selectors, default rules, and trigger position.
+- Show a small in-page trigger near the chat input.
+- Append the active rule before the message is sent.
+- Avoid duplicate injection when the message already contains a `<RULES>` block.
+- Auto-enable injection for a new conversation and disable it after injection or once a conversation starts.
+- Store configuration in extension storage with a localStorage mirror fallback.
 
-## UI 设计
+## Current Platform Support
 
-- 组件放在聊天输入框 textarea 前面。
-- 三角按钮表示状态：
-  - 绿色正三角：已启用。
-  - 灰色倒三角：已禁用。
-- 点击三角只打开弹窗，不直接切换启用状态。
-- 弹窗向上打开，包含：
-  - 启用开关。
-  - 预设 prompt 输入框。
-  - 保存按钮。
+The content script currently targets:
 
-默认 prompt：
+- DeepSeek: `*://chat.deepseek.com/*`
+
+The popup data model also contains configurable entries for ChatGPT and Claude, but the shipped content-script preset and host permission currently only include DeepSeek. To enable more platforms, update:
+
+- `config/platforms.ts`
+- `wxt.config.ts`
+- the platform selectors in the popup or defaults
+
+## Injection Format
+
+When injection is active, the extension appends the rule to the user's message:
 
 ```txt
-请用简洁、准确、结构化的方式回答，避免无关铺垫。
+User message
+<RULES> --------
+Rule content
+-------- </RULES>
 ```
 
-## 本地调试
+If the message already contains `<RULES>`, it is left unchanged.
 
-安装依赖：
+## Popup Features
+
+### Rules
+
+- Create a new rule.
+- Toggle a rule on or off.
+- Assign a rule to one or more platforms.
+- Preview long rules.
+- Copy rule content.
+- Edit or delete existing rules.
+
+### Platforms
+
+Each platform can be configured with:
+
+- name
+- match URL
+- enabled state
+- default rule
+- input selector
+- submit button selector
+- conversation container selector
+- conversation item selector
+- trigger X/Y offset
+
+### Settings
+
+- Trigger visibility:
+  - `newConversationOnly`
+  - `always`
+  - `hidden`
+- UI theme:
+  - `auto`
+  - `black`
+  - `white`
+
+## In-Page Trigger
+
+The in-page trigger opens a small rule panel. From there, the user can:
+
+- enable or disable injection
+- select a platform rule
+- add a rule for the current platform
+- edit the active rule
+
+The trigger uses a green upward triangle when active and a gray downward triangle when inactive.
+
+## Development
+
+Install dependencies:
 
 ```bash
 pnpm install
 ```
 
-启动组件调试页：
-
-```bash
-pnpm dev:ui
-```
-
-打开：
-
-```txt
-http://127.0.0.1:5173
-```
-
-扩展开发：
+Run the extension in development mode:
 
 ```bash
 pnpm dev
 ```
 
-类型检查：
+Run the standalone UI preview:
+
+```bash
+pnpm dev:ui
+```
+
+Open:
+
+```txt
+http://127.0.0.1:5173
+```
+
+Type check:
 
 ```bash
 pnpm compile
 ```
 
-## 平台配置
+Build:
 
-配置在 `config/platforms.ts`。
+```bash
+pnpm build
+```
 
-每个平台包含：
+Package:
 
-- `id`：平台标识。
-- `name`：平台名称。
-- `matches`：content script 匹配域名。
-- `inputSelector`：聊天输入框选择器。
-- `submitSelector`：发送按钮选择器。
-- `conversationContainerSelector`：对话列表/内容容器选择器，容器为空时才显示三角按钮并允许首轮拼接规则。
-- `insertStrategy`：规则注入策略。
+```bash
+pnpm zip
+```
 
-当前内置：
+## Notes
 
-- DeepSeek：`*://chat.deepseek.com/*`
-
-## 后续注入方案
-
-真实网站注入时只匹配配置白名单。
-
-发送前处理流程：
-
-1. 找到当前平台 preset。
-2. 找到输入框和发送按钮。
-3. 用户点击发送时，如果规则已启用：
-   - 不长期污染用户输入框。
-   - 发送前拼接预设规则。
-   - 后续可把规则渲染成可折叠 DOM 标记，视觉上更清楚。
-
-## 依赖原则
-
-- Tailwind 4：样式。
-- `@floating-ui/vue`：弹窗定位、边界处理、滚动容器处理。
-- 新增复杂库前先确认，不闭门造车。
+- The current default prompt rules are Chinese.
+- The extension uses DOM selectors, so platform UI changes may require selector updates.
+- `visible-folded-rule` exists as a planned insert strategy, but the current active behavior is `append-before-send`.

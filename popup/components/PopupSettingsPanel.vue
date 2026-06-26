@@ -32,6 +32,7 @@ const draftRuleContent = ref('');
 const draftRuleEnabled = ref(true);
 const draftRulePlatformIds = ref<string[]>([]);
 const settingsOpen = ref(false);
+const resetConfirmOpen = ref(false);
 
 const editingRule = computed(() => config.value.rules.find((rule) => rule.id === ruleEditorId.value));
 const previewingRule = computed(() => config.value.rules.find((rule) => rule.id === rulePreviewId.value));
@@ -149,6 +150,21 @@ function closeSettings() {
   settingsOpen.value = false;
 }
 
+function requestResetAll() {
+  resetConfirmOpen.value = true;
+}
+
+async function confirmResetAll() {
+  await store.resetToDefaults();
+  ruleEditorId.value = '';
+  rulePreviewId.value = '';
+  platformEditorId.value = '';
+  pendingDeleteRuleId.value = '';
+  createRuleActive.value = false;
+  resetConfirmOpen.value = false;
+  closeSettings();
+}
+
 function openPlatformEditor(platformId: string) {
   rulePreviewId.value = '';
   platformEditorId.value = platformId;
@@ -259,7 +275,7 @@ function handlePanelClick(event: MouseEvent) {
       </div>
     </div>
 
-    <section v-if="settingsOpen" class="absolute inset-0 z-10 flex flex-col backdrop-blur-xl">
+    <section v-if="settingsOpen" class="popup-panel-layer absolute inset-0 z-10 flex flex-col backdrop-blur-xl">
       <header class="popup-header border-b popup-divider">
         <button
           type="button"
@@ -277,85 +293,101 @@ function handlePanelClick(event: MouseEvent) {
         <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">设置</h3>
       </header>
 
-      <div class="popup-setting-block border-b popup-divider">
-        <p class="text-[13px] font-medium popup-primary-text">三角按钮</p>
-        <p class="popup-muted-label mt-1 text-xs leading-5">{{ triggerVisibilityHint }}</p>
-        <div class="popup-trigger-segment mt-2.5">
-          <button
-            type="button"
-            class="popup-trigger-segment-button"
-            :class="config.settings.triggerVisibility === 'hidden' ? 'popup-trigger-segment-button-active' : ''"
-            @click="setTriggerVisibility('hidden')"
-          >
-            不显示
-          </button>
-          <button
-            type="button"
-            class="popup-trigger-segment-button"
-            :class="config.settings.triggerVisibility === 'newConversationOnly' ? 'popup-trigger-segment-button-active' : ''"
-            @click="setTriggerVisibility('newConversationOnly')"
-          >
-            仅新对话
-          </button>
-          <button
-            type="button"
-            class="popup-trigger-segment-button"
-            :class="config.settings.triggerVisibility === 'always' ? 'popup-trigger-segment-button-active' : ''"
-            @click="setTriggerVisibility('always')"
-          >
-            始终显示
-          </button>
+      <div class="min-h-0 flex-1 overflow-y-auto popup-settings-scroll">
+        <div class="popup-setting-block border-b popup-divider">
+          <p class="text-[13px] font-medium popup-primary-text">三角按钮</p>
+          <p class="popup-muted-label mt-1 text-xs leading-5">{{ triggerVisibilityHint }}</p>
+          <div class="popup-trigger-segment mt-2.5">
+            <button
+              type="button"
+              class="popup-trigger-segment-button"
+              :class="config.settings.triggerVisibility === 'hidden' ? 'popup-trigger-segment-button-active' : ''"
+              @click="setTriggerVisibility('hidden')"
+            >
+              不显示
+            </button>
+            <button
+              type="button"
+              class="popup-trigger-segment-button"
+              :class="config.settings.triggerVisibility === 'newConversationOnly' ? 'popup-trigger-segment-button-active' : ''"
+              @click="setTriggerVisibility('newConversationOnly')"
+            >
+              仅新对话
+            </button>
+            <button
+              type="button"
+              class="popup-trigger-segment-button"
+              :class="config.settings.triggerVisibility === 'always' ? 'popup-trigger-segment-button-active' : ''"
+              @click="setTriggerVisibility('always')"
+            >
+              始终显示
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="popup-setting-row border-b popup-divider">
-        <p class="text-[13px] font-medium popup-primary-text">主题色</p>
-        <div class="popup-theme-segment">
+        <div class="popup-setting-row border-b popup-divider">
+          <p class="text-[13px] font-medium popup-primary-text">主题色</p>
+          <div class="popup-theme-segment">
+            <button
+              type="button"
+              class="popup-theme-icon-button"
+              :class="config.settings.uiTheme === 'auto' ? 'popup-theme-icon-button-active' : ''"
+              title="跟随系统"
+              aria-label="跟随系统"
+              @click="config.settings.uiTheme = 'auto'"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="5" width="16" height="11" rx="2" />
+                <path d="M8 19h8" />
+                <path d="M12 16v3" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="popup-theme-icon-button"
+              :class="config.settings.uiTheme === 'black' ? 'popup-theme-icon-button-active' : ''"
+              title="深色"
+              aria-label="深色"
+              @click="config.settings.uiTheme = 'black'"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3a7 7 0 1 0 9 9 9 9 0 0 1-9-9Z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="popup-theme-icon-button"
+              :class="config.settings.uiTheme === 'white' ? 'popup-theme-icon-button-active' : ''"
+              title="浅色"
+              aria-label="浅色"
+              @click="config.settings.uiTheme = 'white'"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4.5" />
+                <path d="M12 2v2.5" />
+                <path d="M12 19.5V22" />
+                <path d="M4.5 4.5 6.3 6.3" />
+                <path d="M17.7 17.7 19.5 19.5" />
+                <path d="M2 12h2.5" />
+                <path d="M19.5 12H22" />
+                <path d="M4.5 19.5 6.3 17.7" />
+                <path d="M17.7 6.3 19.5 4.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="popup-setting-block">
+          <p class="text-[13px] font-medium popup-primary-text">重置数据</p>
+          <p class="popup-muted-label mt-1 text-xs leading-5">
+            恢复内置 demo 规则、平台默认配置与设置，自定义内容将被清除。
+          </p>
           <button
             type="button"
-            class="popup-theme-icon-button"
-            :class="config.settings.uiTheme === 'auto' ? 'popup-theme-icon-button-active' : ''"
-            title="跟随系统"
-            aria-label="跟随系统"
-            @click="config.settings.uiTheme = 'auto'"
+            class="popup-reset-button mt-3"
+            @click="requestResetAll"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="4" y="5" width="16" height="11" rx="2" />
-              <path d="M8 19h8" />
-              <path d="M12 16v3" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="popup-theme-icon-button"
-            :class="config.settings.uiTheme === 'black' ? 'popup-theme-icon-button-active' : ''"
-            title="深色"
-            aria-label="深色"
-            @click="config.settings.uiTheme = 'black'"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 3a7 7 0 1 0 9 9 9 9 0 0 1-9-9Z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="popup-theme-icon-button"
-            :class="config.settings.uiTheme === 'white' ? 'popup-theme-icon-button-active' : ''"
-            title="浅色"
-            aria-label="浅色"
-            @click="config.settings.uiTheme = 'white'"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="4.5" />
-              <path d="M12 2v2.5" />
-              <path d="M12 19.5V22" />
-              <path d="M4.5 4.5 6.3 6.3" />
-              <path d="M17.7 17.7 19.5 19.5" />
-              <path d="M2 12h2.5" />
-              <path d="M19.5 12H22" />
-              <path d="M4.5 19.5 6.3 17.7" />
-              <path d="M17.7 6.3 19.5 4.5" />
-            </svg>
+            重置全部数据
           </button>
         </div>
       </div>
@@ -420,6 +452,38 @@ function handlePanelClick(event: MouseEvent) {
       :rules="config.rules"
       @back="platformEditorId = ''"
     />
+
+    <div
+      v-if="resetConfirmOpen"
+      class="popup-overlay absolute inset-0 z-20 grid place-items-center px-5 backdrop-blur-sm"
+      @click.self="resetConfirmOpen = false"
+    >
+      <section class="popup-surface popup-shadow-sm min-w-0 w-full max-w-[calc(100vw-2.5rem)] rounded-xl border">
+        <div class="popup-section popup-divider min-w-0 border-b py-3">
+          <h3 class="popup-primary-text text-sm font-semibold">重置全部数据</h3>
+          <p class="popup-muted-label mt-1 text-xs leading-5">
+            将恢复内置 demo 规则与平台默认配置，当前所有自定义规则与设置都会被清除，此操作不可撤销。
+          </p>
+        </div>
+
+        <div class="popup-section flex items-center justify-end gap-2 py-2.5">
+          <button
+            type="button"
+            class="popup-secondary-text rounded-md px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--popup-hover)]"
+            @click="resetConfirmOpen = false"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            class="popup-action-danger rounded-md px-3 py-1.5 text-xs font-medium transition"
+            @click="confirmResetAll"
+          >
+            重置
+          </button>
+        </div>
+      </section>
+    </div>
 
     <div
       v-if="pendingDeleteRuleId"
@@ -533,5 +597,25 @@ function handlePanelClick(event: MouseEvent) {
 .popup-trigger-segment-button-active {
   background: var(--popup-tab-active-bg);
   color: var(--popup-tab-active-text);
+}
+
+.popup-reset-button {
+  width: 100%;
+  border: 1px solid rgb(248 113 113 / 0.35);
+  border-radius: 8px;
+  background: rgb(248 113 113 / 0.08);
+  padding: 8px 12px;
+  color: #f87171;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.popup-reset-button:hover {
+  background: rgb(248 113 113 / 0.14);
+  border-color: rgb(248 113 113 / 0.5);
 }
 </style>

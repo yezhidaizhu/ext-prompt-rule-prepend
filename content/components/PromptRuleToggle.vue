@@ -335,12 +335,6 @@ onBeforeUnmount(() => {
                     <p class="prompt-rule-item-text">
                       {{ rule.content }}
                     </p>
-                    <span
-                      v-if="activeRuleId === rule.id"
-                      class="prompt-rule-check"
-                    >
-                      ✓
-                    </span>
                   </button>
                   <button
                     type="button"
@@ -414,7 +408,7 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-floating {
-  width: 320px;
+  width: 360px;
   max-width: calc(100vw - 24px);
 }
 
@@ -440,53 +434,43 @@ onBeforeUnmount(() => {
 
 .prompt-rule-popover-arrow {
   position: absolute;
-  bottom: -9px;
-  left: 17px;
+  bottom: -8px;
+  left: 18px;
   z-index: 10;
-  height: 0;
-  width: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 9px solid rgb(255 255 255 / 0.1);
-}
-
-.prompt-rule-popover-arrow::after {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: -10px;
   height: 0;
   width: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 8px solid rgb(32 33 36 / 0.92);
+  border-top: 8px solid #1f1f1f;
+}
+
+.prompt-rule-popover-arrow::after {
+  content: none;
 }
 
 .prompt-rule-popover-panel {
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 12px;
-  background: rgb(32 33 36 / 0.78);
-  color: #f4f4f5;
+  border: 1px solid rgb(255 255 255 / 0.06);
+  border-radius: 16px;
+  background: #1f1f1f;
+  color: #ececec;
   text-align: left;
-  box-shadow: 0 24px 60px rgb(0 0 0 / 0.3);
-  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 0.28);
 }
 
 .prompt-rule-popover-header {
   display: flex;
-  height: 44px;
+  height: 40px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgb(255 255 255 / 0.08);
-  padding-inline: 12px;
+  padding: 8px 8px 2px 14px;
 }
 
 .prompt-rule-popover-title {
   margin: 0;
-  color: #a1a1aa;
-  font-size: 13px;
+  color: #b4b4b4;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1;
 }
@@ -500,11 +484,11 @@ onBeforeUnmount(() => {
 .prompt-rule-icon-button,
 .prompt-rule-power {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
   padding: 0;
   cursor: pointer;
@@ -514,12 +498,12 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-icon-button {
-  color: #a1a1aa;
+  color: #b4b4b4;
 }
 
 .prompt-rule-icon-button:hover {
-  background: rgb(255 255 255 / 0.06);
-  color: #f4f4f5;
+  background: #303030;
+  color: #ececec;
 }
 
 .prompt-rule-header-icon {
@@ -529,15 +513,15 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-power:hover {
-  background: rgb(255 255 255 / 0.06);
+  background: #303030;
 }
 
 .prompt-rule-power-active {
-  color: #6ee7b7;
+  color: #19c37d;
 }
 
 .prompt-rule-power-inactive {
-  color: #fca5a5;
+  color: #d1d5db;
 }
 
 .prompt-rule-power-icon {
@@ -548,15 +532,17 @@ onBeforeUnmount(() => {
 
 .prompt-rule-list {
   overflow: hidden;
+  padding: 2px 6px 8px;
   scrollbar-width: thin;
-  scrollbar-color: #52525b transparent;
+  scrollbar-color: #4b4b4b transparent;
 }
 
 .prompt-rule-notice {
-  margin: 0;
-  border-bottom: 1px solid rgb(255 255 255 / 0.08);
-  padding: 10px 12px;
-  color: #fbbf24;
+  margin: 4px 2px 6px;
+  border-radius: 8px;
+  background: #2f2a1d;
+  padding: 8px 10px;
+  color: #f1c45d;
   font-size: 12px;
   line-height: 1.4;
   text-align: left;
@@ -564,20 +550,20 @@ onBeforeUnmount(() => {
 
 .prompt-rule-empty {
   display: grid;
-  min-height: 120px;
+  min-height: 132px;
   place-content: center;
   justify-items: center;
-  padding: 20px 16px;
+  padding: 18px 16px 20px;
   text-align: center;
 }
 
 .prompt-rule-empty-icon {
-  color: #71717a;
+  color: #8e8e8e;
 }
 
 .prompt-rule-empty-title {
   margin: 8px 0 0;
-  color: #a1a1aa;
+  color: #ececec;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
@@ -585,7 +571,7 @@ onBeforeUnmount(() => {
 
 .prompt-rule-empty-hint {
   margin: 4px 0 0;
-  color: #71717a;
+  color: #8e8e8e;
   font-size: 12px;
   line-height: 1.4;
 }
@@ -594,9 +580,9 @@ onBeforeUnmount(() => {
   margin-top: 12px;
   border: 0;
   border-radius: 8px;
-  background: rgb(52 245 163 / 0.14);
-  padding: 6px 12px;
-  color: #6ee7b7;
+  background: #303030;
+  padding: 7px 12px;
+  color: #ececec;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -604,16 +590,16 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-empty-action:hover {
-  background: rgb(52 245 163 / 0.22);
+  background: #3a3a3a;
 }
 
 .prompt-rule-item {
   display: flex;
   width: 100%;
-  height: 40px;
+  height: 36px;
   align-items: center;
-  gap: 4px;
-  border-top: 1px solid rgb(255 255 255 / 0.08);
+  gap: 2px;
+  border-radius: 8px;
   transition:
     background-color 160ms ease,
     color 160ms ease;
@@ -624,8 +610,8 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-item-active {
-  background: rgb(52 245 163 / 0.1);
-  color: #f4f4f5;
+  background: #333333;
+  color: #ececec;
 }
 
 .prompt-rule-item-main {
@@ -637,32 +623,32 @@ onBeforeUnmount(() => {
   gap: 8px;
   border: 0;
   background: transparent;
-  padding: 0 0 0 12px;
+  padding: 0 0 0 10px;
   color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .prompt-rule-item:hover {
-  background: rgb(255 255 255 / 0.06);
+  background: #303030;
 }
 
 .prompt-rule-item-active:hover {
-  background: rgb(52 245 163 / 0.14);
+  background: #3a3a3a;
 }
 
 .prompt-rule-item-edit {
   display: grid;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border: 0;
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
-  margin-right: 4px;
+  margin-right: 3px;
   padding: 0;
-  color: #71717a;
+  color: #8e8e8e;
   cursor: pointer;
   transition:
     background-color 160ms ease,
@@ -670,8 +656,8 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-item-edit:hover {
-  background: rgb(255 255 255 / 0.08);
-  color: #f4f4f5;
+  background: #444444;
+  color: #ececec;
 }
 
 .prompt-rule-item-edit-icon {
@@ -689,18 +675,11 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 14px;
   line-height: 20px;
-  color: #d4d4d8;
+  color: #ececec;
 }
 
 .prompt-rule-item-active .prompt-rule-item-text {
   color: #f4f4f5;
-}
-
-.prompt-rule-check {
-  flex-shrink: 0;
-  color: #6ee7b7;
-  font-size: 14px;
-  line-height: 20px;
 }
 
 .prompt-rule-list::-webkit-scrollbar {
@@ -712,7 +691,7 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-list::-webkit-scrollbar-thumb {
-  background: #52525b;
+  background: #4b4b4b;
   border-radius: 999px;
 }
 

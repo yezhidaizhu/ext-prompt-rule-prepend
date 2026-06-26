@@ -4,6 +4,7 @@ import {
   createDefaultPromptConfig,
   loadPromptConfig,
   observePromptConfigChanges,
+  resetPromptConfig,
   savePromptConfig,
   type PromptConfig,
 } from '@/utils/promptConfig';
@@ -56,6 +57,12 @@ export const usePromptConfigStore = defineStore('promptConfig', {
 
     replaceConfig(config: PromptConfig) {
       this.config = cloneConfig(config);
+    },
+
+    async resetToDefaults() {
+      this.syncingRemote = true;
+      this.config = cloneConfig(await resetPromptConfig());
+      this.syncingRemote = false;
     },
   },
 });

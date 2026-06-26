@@ -8,6 +8,34 @@ const submitFallbackSelectors = [
   '[role="button"][aria-label*="Send" i]',
 ];
 
+function splitSelectors(selector: string) {
+  return selector.split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function isExcludedChatInput(element: Element) {
+  return Boolean(element.closest('[id^="prompt-rule-prepend-"]'));
+}
+
+function isUsableChatInput(element: Element | null): element is PromptInputElement {
+  if (!isEditableInput(element)) return false;
+  if (!isVisibleElement(element)) return false;
+  if (isExcludedChatInput(element)) return false;
+
+  return true;
+}
+
+function pickComposerInput(elements: PromptInputElement[]) {
+  return elements.reduce((best, current) => {
+    const bestRect = best.getBoundingClientRect();
+    const currentRect = current.getBoundingClientRect();
+
+    if (currentRect.bottom > bestRect.bottom) return current;
+    if (currentRect.bottom === bestRect.bottom && currentRect.width > bestRect.width) return current;
+
+    return best;
+  });
+}
+
 export function queryVisible<T extends Element>(selectors: string[]) {
   for (const selector of selectors) {
     const elements = [...document.querySelectorAll<T>(selector)];
@@ -36,12 +64,16 @@ function isUsableButton(element: Element): element is HTMLElement {
 }
 
 export function findInputBySelectors(inputSelector: string) {
-  const input = queryVisible<HTMLElement>([
-    inputSelector,
-    '[contenteditable="true"]',
-  ]);
+  for (const selector of splitSelectors(inputSelector)) {
+    const elements = [...document.querySelectorAll<HTMLElement>(selector)]
+      .filter(isUsableChatInput);
 
-  return isEditableInput(input) ? input : null;
+    if (elements.length) {
+      return pickComposerInput(elements);
+    }
+  }
+
+  return null;
 }
 
 export function findSubmitBySelectors(submitSelector: string, input: PromptInputElement | null) {
@@ -66,11 +98,19 @@ export function findSubmitBySelectors(submitSelector: string, input: PromptInput
 export function findInputFromTarget(target: EventTarget | null, inputSelector: string) {
   if (!(target instanceof Element)) return null;
 
-  const direct = target.closest(inputSelector);
-  if (isEditableInput(direct)) return direct;
+  for (const selector of splitSelectors(inputSelector)) {
+    if (isEditableInput(target)) {
+      const matchedInputs = [...document.querySelectorAll<HTMLElement>(selector)]
+        .filter(isUsableChatInput);
+      if (matchedInputs.includes(target)) return target;
+    }
+
+    const direct = target.closest(selector);
+    if (isUsableChatInput(direct)) return direct;
+  }
 
   const editable = target.closest('[contenteditable="true"]');
-  if (isEditableInput(editable)) return editable;
+  if (isUsableChatInput(editable)) return editable;
 
   return null;
 }
@@ -93,12 +133,20 @@ function getConversationItems(container: Element, selector: string) {
   });
 }
 
+function isBroadConversationContainer(selector: string) {
+  const normalized = selector.trim().toLowerCase();
+  return normalized === 'main' || normalized === 'body' || normalized === '#root' || normalized === 'html';
+}
+
 export function hasConversationContent(containerSelector: string, itemSelector: string) {
   const container = getConversationContainer(containerSelector);
   if (!container) return false;
 
   const items = getConversationItems(container, itemSelector);
   if (itemSelector.trim()) return items.length > 0;
+
+  if (isBroadConversationContainer(containerSelector)) return false;
+
   if (items.length > 0) return true;
 
   const visibleChildren = [...container.children].filter((child) => {

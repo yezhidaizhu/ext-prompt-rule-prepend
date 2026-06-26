@@ -38,7 +38,18 @@ export default defineContentScript({
       position: 'inline',
       anchor: 'body',
       append: 'last',
-      onMount(container) {
+      onMount(container, shadow) {
+        const host = shadow.host as HTMLElement;
+        Object.assign(host.style, {
+          position: 'fixed',
+          inset: '0 auto auto 0',
+          width: '0',
+          height: '0',
+          zIndex: String(2147483646),
+          pointerEvents: 'none',
+        });
+        container.style.pointerEvents = 'auto';
+
         app = createApp(ContentApp, { platformId: preset.id });
         app.use(pinia);
         app.mount(container);

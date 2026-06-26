@@ -9,6 +9,8 @@ import type { ContentPlatform } from './types';
 
 const POSITION_THROTTLE_MS = 32;
 const CREATE_DIALOG_CLOSED_EVENT = 'prompt-rule-prepend:create-dialog-closed';
+const INPUT_RETRY_MS = 400;
+const INPUT_RETRY_DURATION_MS = 30000;
 
 export function useTogglePosition(platform: ContentPlatform) {
   const store = usePromptConfigStore();
@@ -57,6 +59,16 @@ export function useTogglePosition(platform: ContentPlatform) {
     const state = getPromptActivationState(platform);
 
     if (!state.toggleVisible || !state.input) {
+      if (import.meta.env.DEV) {
+        console.debug('[prompt-rule-prepend] toggle hidden', {
+          platform: platform.id,
+          toggleVisible: state.toggleVisible,
+          hasInput: Boolean(state.input),
+          triggerVisibility: config.value.settings.triggerVisibility,
+          platformEnabled: config.value.platforms.find((item) => item.id === platform.id)?.enabled,
+          conversationStarted: platform.hasConversationStarted(),
+        });
+      }
       hideHost();
       return;
     }
@@ -73,8 +85,25 @@ export function useTogglePosition(platform: ContentPlatform) {
   });
 
   let observer: MutationObserver | null = null;
+  let retryTimer: number | null = null;
+  let retryStartedAt = 0;
+
+  function ensureInputRetryLoop() {
+    if (retryTimer !== null) return;
+
+    retryStartedAt = Date.now();
+    retryTimer = window.setInterval(() => {
+      updatePosition();
+
+      if (Date.now() - retryStartedAt >= INPUT_RETRY_DURATION_MS && retryTimer !== null) {
+        window.clearInterval(retryTimer);
+        retryTimer = null;
+      }
+    }, INPUT_RETRY_MS);
+  }
 
   onMounted(() => {
+    ensureInputRetryLoop();
     observer = new MutationObserver(throttledUpdatePosition);
     observer.observe(document.documentElement, {
       childList: true,
@@ -92,6 +121,10 @@ export function useTogglePosition(platform: ContentPlatform) {
 
   onUnmounted(() => {
     throttledUpdatePosition.cancel();
+    if (retryTimer !== null) {
+      window.clearInterval(retryTimer);
+      retryTimer = null;
+    }
     observer?.disconnect();
     window.removeEventListener('resize', throttledUpdatePosition);
     window.removeEventListener('scroll', throttledUpdatePosition, true);

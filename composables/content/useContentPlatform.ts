@@ -10,6 +10,12 @@ import {
 } from '@/utils/content/platformDom';
 import type { ContentPlatform } from './types';
 
+function resolveInputSelectorCandidates(stored?: string, preset?: string) {
+  return [...new Set(
+    [stored?.trim(), preset?.trim()].filter((item): item is string => Boolean(item)),
+  )];
+}
+
 export function useContentPlatform(platformId: string): ContentPlatform {
   const store = usePromptConfigStore();
   const { config } = storeToRefs(store);
@@ -17,8 +23,11 @@ export function useContentPlatform(platformId: string): ContentPlatform {
   const preset = platformPresets.find((item) => item.id === platformId);
   const platformConfig = computed(() => config.value.platforms.find((item) => item.id === platformId));
 
-  const inputSelector = computed(() =>
-    platformConfig.value?.textareaSelector || preset?.inputSelector || 'textarea');
+  const inputSelectorCandidates = computed(() =>
+    resolveInputSelectorCandidates(
+      platformConfig.value?.textareaSelector,
+      preset?.inputSelector,
+    ));
 
   const submitSelector = computed(() =>
     platformConfig.value?.submitSelector || preset?.submitSelector || 'button[type="submit"]');
@@ -36,10 +45,20 @@ export function useContentPlatform(platformId: string): ContentPlatform {
   return {
     id: platformId,
     findInput() {
-      return findInputBySelectors(inputSelector.value);
+      for (const selector of inputSelectorCandidates.value) {
+        const input = findInputBySelectors(selector);
+        if (input) return input;
+      }
+
+      return null;
     },
     findInputFromTarget(target: EventTarget | null) {
-      return findInputFromTarget(target, inputSelector.value);
+      for (const selector of inputSelectorCandidates.value) {
+        const input = findInputFromTarget(target, selector);
+        if (input) return input;
+      }
+
+      return null;
     },
     findSubmit() {
       return findSubmitBySelectors(submitSelector.value, this.findInput());

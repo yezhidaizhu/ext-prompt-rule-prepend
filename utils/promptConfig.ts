@@ -1,4 +1,10 @@
 import type { PopupPlatform, PopupRule, PopupTheme, TriggerVisibility } from '@/types/promptConfig';
+import {
+  createDemoPromptRules,
+  getDemoDefaultRuleId,
+  demoDefaultSelectedRuleId,
+} from '@/config/demoPrompts';
+import { chatgptConversationItemSelector, chatgptInputSelector, deepseekInputSelector } from '@/config/platforms';
 
 export const promptConfigStorageKey = 'prompt-rule-prepend:config';
 export const promptConfigUpdatedEvent = 'prompt-rule-prepend:config-updated';
@@ -26,9 +32,9 @@ export function createDefaultPromptConfig(): PromptConfig {
       id: 'deepseek',
       name: 'DeepSeek',
       enabled: true,
-      defaultRuleId: 'concise',
+      defaultRuleId: getDemoDefaultRuleId('deepseek'),
       matchUrl: '*://chat.deepseek.com/*',
-      textareaSelector: 'textarea',
+      textareaSelector: deepseekInputSelector,
       submitSelector: 'button[type="submit"]',
       conversationContainerSelector: '.ds-virtual-list--printable',
       conversationItemSelector: '.ds-message',
@@ -39,60 +45,36 @@ export function createDefaultPromptConfig(): PromptConfig {
       id: 'chatgpt',
       name: 'ChatGPT',
       enabled: true,
-      defaultRuleId: '',
+      defaultRuleId: getDemoDefaultRuleId('chatgpt'),
       matchUrl: '*://chatgpt.com/*',
-      textareaSelector: 'textarea',
+      textareaSelector: chatgptInputSelector,
       submitSelector: 'button[data-testid="send-button"]',
       conversationContainerSelector: 'main',
-      conversationItemSelector: '',
-      offsetX: -34,
-      offsetY: 8,
+      conversationItemSelector: chatgptConversationItemSelector,
+      offsetX: -84,
+      offsetY: 0,
     },
-    {
-      id: 'claude',
-      name: 'Claude',
-      enabled: false,
-      defaultRuleId: '',
-      matchUrl: '*://claude.ai/*',
-      textareaSelector: 'div[contenteditable="true"]',
-      submitSelector: 'button[aria-label*="Send"]',
-      conversationContainerSelector: 'main',
-      conversationItemSelector: '',
-      offsetX: -34,
-      offsetY: 8,
-    },
+    // Claude 暂不支持，后续启用时在 config/demoPrompts.ts 一并取消注释：
+    // {
+    //   id: 'claude',
+    //   name: 'Claude',
+    //   enabled: false,
+    //   defaultRuleId: getDemoDefaultRuleId('claude'),
+    //   matchUrl: '*://claude.ai/*',
+    //   textareaSelector: 'div[contenteditable="true"]',
+    //   submitSelector: 'button[aria-label*="Send"]',
+    //   conversationContainerSelector: 'main',
+    //   conversationItemSelector: '',
+    //   offsetX: -34,
+    //   offsetY: 8,
+    // },
   ];
 
-  const rules: PopupRule[] = [
-    {
-      id: 'concise',
-      content: '请用简洁、准确的语言回答，避免无关铺垫。',
-      enabled: true,
-      platformIds: ['deepseek', 'chatgpt'],
-    },
-    {
-      id: 'conclusion-first',
-      content: '先给结论，再补充必要依据。',
-      enabled: true,
-      platformIds: ['deepseek'],
-    },
-    {
-      id: 'no-fabrication',
-      content: '不确定时直接说明，不要编造。',
-      enabled: false,
-      platformIds: ['claude', 'chatgpt'],
-    },
-    {
-      id: 'long-demo',
-      content: '这是一个很长很长的规则示例，用来验证列表、查看抽屉、删除确认弹窗里的长文本省略效果：请始终先理解用户真实意图，再用简洁准确的方式回答；如果问题存在歧义，请指出关键不确定点；如果需要步骤，请只给必要步骤；不要输出无关铺垫、不要重复用户问题、不要编造不存在的事实。',
-      enabled: true,
-      platformIds: ['deepseek', 'chatgpt', 'claude'],
-    },
-  ];
+  const rules = createDemoPromptRules();
 
   return {
     enabled: false,
-    selectedRuleId: 'concise',
+    selectedRuleId: demoDefaultSelectedRuleId,
     rules,
     platforms,
     settings: {
@@ -274,6 +256,13 @@ export function loadPromptConfigSync(): PromptConfig {
 export async function loadPromptConfig(): Promise<PromptConfig> {
   const stored = await readFromStorage<PromptConfig>(promptConfigStorageKey);
   return mergeStoredConfig(stored);
+}
+
+export async function resetPromptConfig(): Promise<PromptConfig> {
+  const config = createDefaultPromptConfig();
+  await writeToStorage(promptConfigStorageKey, config);
+  emitPromptConfigUpdated(config);
+  return config;
 }
 
 export async function savePromptConfig(config: PromptConfig) {
