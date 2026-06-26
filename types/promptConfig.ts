@@ -20,3 +20,5 @@ export interface PopupPlatform {
 }
 
 export type PopupTheme = 'auto' | 'black' | 'white';
+
+export type TriggerVisibility = 'hidden' | 'newConversationOnly' | 'always';

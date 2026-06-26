@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { resolveDialogPortalTarget, setCreateDialogOpen } from '@/utils/content/dialogPortal';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
+  mode?: 'create' | 'edit';
   platformName: string;
   hint: string;
-}>();
+  initialContent?: string;
+  initialEnabled?: boolean;
+}>(), {
+  mode: 'create',
+  initialContent: '',
+  initialEnabled: true,
+});
 
 const emit = defineEmits<{
   close: [];
   create: [payload: { content: string; enabled: boolean }];
+  save: [payload: { content: string; enabled: boolean }];
 }>();
 
 const content = ref('');
@@ -17,26 +25,56 @@ const enabled = ref(true);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const portalTarget = resolveDialogPortalTarget();
 
-const canCreate = computed(() => content.value.trim().length > 0);
-const dialogHint = computed(() => props.hint.trim() || `创建后将关联到 ${props.platformName}`);
+const isEditMode = computed(() => props.mode === 'edit');
+const dialogTitle = computed(() => (isEditMode.value ? '编辑规则' : '添加规则'));
+const submitLabel = computed(() => (isEditMode.value ? '保存' : '创建'));
+const switchLabel = computed(() => (isEditMode.value ? '启用规则' : '创建后启用'));
+const switchDesc = computed(() =>
+  isEditMode.value ? '关闭后保留规则，但不参与注入' : '关闭后仅保存，不参与注入');
+
+const canSubmit = computed(() => content.value.trim().length > 0);
+const dialogHint = computed(() => {
+  if (props.hint.trim()) return props.hint.trim();
+  return isEditMode.value
+    ? `编辑 ${props.platformName} 的规则`
+    : `创建后将关联到 ${props.platformName}`;
+});
+
+function syncFromProps() {
+  content.value = props.initialContent;
+  enabled.value = props.initialEnabled;
+}
 
 onMounted(async () => {
+  syncFromProps();
   setCreateDialogOpen(true);
   await nextTick();
   textareaRef.value?.focus();
 });
+
+watch(
+  () => [props.initialContent, props.initialEnabled] as const,
+  () => syncFromProps(),
+);
 
 onBeforeUnmount(() => {
   setCreateDialogOpen(false);
 });
 
 function submit() {
-  if (!canCreate.value) return;
+  if (!canSubmit.value) return;
 
-  emit('create', {
+  const payload = {
     content: content.value.trim(),
     enabled: enabled.value,
-  });
+  };
+
+  if (isEditMode.value) {
+    emit('save', payload);
+    return;
+  }
+
+  emit('create', payload);
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -58,11 +96,16 @@ function handleKeydown(event: KeyboardEvent) {
         class="prompt-rule-create-dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="prompt-rule-create-title"
+        :aria-labelledby="isEditMode ? 'prompt-rule-edit-title' : 'prompt-rule-create-title'"
         @click.stop
       >
         <header class="prompt-rule-create-header">
-          <h3 id="prompt-rule-create-title" class="prompt-rule-create-title">添加规则</h3>
+          <h3
+            :id="isEditMode ? 'prompt-rule-edit-title' : 'prompt-rule-create-title'"
+            class="prompt-rule-create-title"
+          >
+            {{ dialogTitle }}
+          </h3>
           <p class="prompt-rule-create-hint">{{ dialogHint }}</p>
         </header>
 
@@ -72,14 +115,14 @@ function handleKeydown(event: KeyboardEvent) {
             v-model="content"
             class="prompt-rule-create-textarea"
             placeholder="输入规则内容"
-            rows="5"
+            rows="6"
             @keydown="handleKeydown"
           />
 
           <label class="prompt-rule-create-switch-row">
             <span class="prompt-rule-create-switch-copy">
-              <span class="prompt-rule-create-switch-label">创建后启用</span>
-              <span class="prompt-rule-create-switch-desc">关闭后仅保存，不参与注入</span>
+              <span class="prompt-rule-create-switch-label">{{ switchLabel }}</span>
+              <span class="prompt-rule-create-switch-desc">{{ switchDesc }}</span>
             </span>
             <button
               type="button"
@@ -104,10 +147,10 @@ function handleKeydown(event: KeyboardEvent) {
           <button
             type="button"
             class="prompt-rule-create-button prompt-rule-create-button-primary"
-            :disabled="!canCreate"
+            :disabled="!canSubmit"
             @click="submit"
           >
-            创建
+            {{ submitLabel }}
           </button>
         </footer>
       </section>

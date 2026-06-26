@@ -1,4 +1,4 @@
-import type { PopupPlatform, PopupRule, PopupTheme } from '@/types/promptConfig';
+import type { PopupPlatform, PopupRule, PopupTheme, TriggerVisibility } from '@/types/promptConfig';
 
 export const promptConfigStorageKey = 'prompt-rule-prepend:config';
 export const promptConfigUpdatedEvent = 'prompt-rule-prepend:config-updated';
@@ -9,7 +9,7 @@ export interface PromptConfig {
   rules: PopupRule[];
   platforms: PopupPlatform[];
   settings: {
-    showTriggerButton: boolean;
+    triggerVisibility: TriggerVisibility;
     uiTheme: PopupTheme;
   };
 }
@@ -96,7 +96,7 @@ export function createDefaultPromptConfig(): PromptConfig {
     rules,
     platforms,
     settings: {
-      showTriggerButton: true,
+      triggerVisibility: 'newConversationOnly',
       uiTheme: 'auto',
     },
   };
@@ -212,6 +212,28 @@ async function writeToStorage<T>(key: string, value: T) {
   }
 }
 
+function mergeSettings(
+  storedSettings: Partial<PromptConfig['settings']> & { showTriggerButton?: boolean } | undefined,
+  defaults: PromptConfig['settings'],
+): PromptConfig['settings'] {
+  const raw = storedSettings || {};
+  const uiTheme = raw.uiTheme ?? defaults.uiTheme;
+
+  if (raw.triggerVisibility === 'hidden'
+    || raw.triggerVisibility === 'newConversationOnly'
+    || raw.triggerVisibility === 'always') {
+    return {
+      uiTheme,
+      triggerVisibility: raw.triggerVisibility,
+    };
+  }
+
+  return {
+    uiTheme,
+    triggerVisibility: raw.showTriggerButton === false ? 'hidden' : 'newConversationOnly',
+  };
+}
+
 function mergeStoredConfig(stored: PromptConfig | null): PromptConfig {
   if (!stored) return createDefaultPromptConfig();
 
@@ -238,10 +260,10 @@ function mergeStoredConfig(stored: PromptConfig | null): PromptConfig {
     ...stored,
     rules: Array.isArray(stored.rules) ? stored.rules : defaults.rules,
     platforms,
-    settings: {
-      ...defaults.settings,
-      ...(stored.settings || {}),
-    },
+    settings: mergeSettings(
+      stored.settings as Partial<PromptConfig['settings']> & { showTriggerButton?: boolean } | undefined,
+      defaults.settings,
+    ),
   };
 }
 
@@ -320,6 +342,30 @@ export function createRuleForPlatform(
   return id;
 }
 
+export function updateRule(
+  config: PromptConfig,
+  ruleId: string,
+  updates: {
+    content?: string;
+    enabled?: boolean;
+  },
+) {
+  const rule = config.rules.find((item) => item.id === ruleId);
+  if (!rule) return false;
+
+  if (updates.content !== undefined) {
+    const trimmed = updates.content.trim();
+    if (!trimmed) return false;
+    rule.content = trimmed;
+  }
+
+  if (updates.enabled !== undefined) {
+    rule.enabled = updates.enabled;
+  }
+
+  return true;
+}
+
 export function findPlatformRule(config: PromptConfig, platformId?: string) {
   const platform = platformId
     ? config.platforms.find((item) => item.id === platformId && item.enabled)
@@ -329,9 +375,12 @@ export function findPlatformRule(config: PromptConfig, platformId?: string) {
     return null;
   }
 
+  // 1. 页面列表里用户当前选中的规则
+  // 2. 平台设置里的默认规则（选中项对该平台无效时的回退）
+  // 3. 该平台下第一条可用规则
   const preferredRuleIds = [
-    platform?.defaultRuleId,
     config.selectedRuleId,
+    platform?.defaultRuleId,
   ].filter((value): value is string => Boolean(value));
 
   for (const ruleId of preferredRuleIds) {

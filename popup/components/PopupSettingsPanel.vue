@@ -8,7 +8,7 @@ import RuleEditorPanel from './RuleEditorPanel.vue';
 import RuleListPanel from './RuleListPanel.vue';
 import RulePreviewPanel from './RulePreviewPanel.vue';
 import '@/popup/styles/shared.css';
-import type { PopupPlatform, PopupRule } from '@/types/promptConfig';
+import type { PopupPlatform, PopupRule, TriggerVisibility } from '@/types/promptConfig';
 
 const props = withDefaults(
   defineProps<{
@@ -36,6 +36,21 @@ const settingsOpen = ref(false);
 const editingRule = computed(() => config.value.rules.find((rule) => rule.id === ruleEditorId.value));
 const previewingRule = computed(() => config.value.rules.find((rule) => rule.id === rulePreviewId.value));
 const editingPlatform = computed(() => config.value.platforms.find((platform) => platform.id === platformEditorId.value));
+
+const triggerVisibilityHint = computed(() => {
+  switch (config.value.settings.triggerVisibility) {
+    case 'always':
+      return '始终显示在输入框旁；已有对话默认关闭，需手动开启后再发';
+    case 'newConversationOnly':
+      return '仅在没有消息时显示，适合首轮注入';
+    default:
+      return '不在页面显示三角按钮';
+  }
+});
+
+function setTriggerVisibility(value: TriggerVisibility) {
+  config.value.settings.triggerVisibility = value;
+}
 
 watch(
   config,
@@ -262,17 +277,35 @@ function handlePanelClick(event: MouseEvent) {
         <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">设置</h3>
       </header>
 
-      <div class="popup-setting-row border-b popup-divider">
-        <p class="text-[13px] font-medium popup-primary-text">显示触发按钮</p>
-        <button
-          type="button"
-          class="popup-switch"
-          :class="config.settings.showTriggerButton ? 'popup-switch-on' : 'popup-switch-off'"
-          :aria-pressed="config.settings.showTriggerButton"
-          @click="config.settings.showTriggerButton = !config.settings.showTriggerButton"
-        >
-          <span class="popup-switch-thumb" />
-        </button>
+      <div class="popup-setting-block border-b popup-divider">
+        <p class="text-[13px] font-medium popup-primary-text">三角按钮</p>
+        <p class="popup-muted-label mt-1 text-xs leading-5">{{ triggerVisibilityHint }}</p>
+        <div class="popup-trigger-segment mt-2.5">
+          <button
+            type="button"
+            class="popup-trigger-segment-button"
+            :class="config.settings.triggerVisibility === 'hidden' ? 'popup-trigger-segment-button-active' : ''"
+            @click="setTriggerVisibility('hidden')"
+          >
+            不显示
+          </button>
+          <button
+            type="button"
+            class="popup-trigger-segment-button"
+            :class="config.settings.triggerVisibility === 'newConversationOnly' ? 'popup-trigger-segment-button-active' : ''"
+            @click="setTriggerVisibility('newConversationOnly')"
+          >
+            仅新对话
+          </button>
+          <button
+            type="button"
+            class="popup-trigger-segment-button"
+            :class="config.settings.triggerVisibility === 'always' ? 'popup-trigger-segment-button-active' : ''"
+            @click="setTriggerVisibility('always')"
+          >
+            始终显示
+          </button>
+        </div>
       </div>
 
       <div class="popup-setting-row border-b popup-divider">
@@ -462,6 +495,42 @@ function handlePanelClick(event: MouseEvent) {
 }
 
 .popup-main-tab-active {
+  background: var(--popup-tab-active-bg);
+  color: var(--popup-tab-active-text);
+}
+
+.popup-setting-block {
+  padding: 12px var(--popup-panel-x) 14px;
+}
+
+.popup-trigger-segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--popup-segment-border);
+  border-radius: 8px;
+  background: var(--popup-segment-bg);
+  padding: 2px;
+  gap: 2px;
+}
+
+.popup-trigger-segment-button {
+  min-width: 0;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--popup-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.popup-trigger-segment-button-active {
   background: var(--popup-tab-active-bg);
   color: var(--popup-tab-active-text);
 }

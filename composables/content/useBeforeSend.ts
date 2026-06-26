@@ -8,7 +8,12 @@ import {
 import { getPromptActivationState } from './usePromptActivation';
 import type { ContentPlatform } from './types';
 
-export function useBeforeSend(platform: ContentPlatform) {
+export function useBeforeSend(
+  platform: ContentPlatform,
+  options: {
+    onInjected?: () => void;
+  } = {},
+) {
   function applyPromptBeforeSend() {
     const { canInject, activeRule, input } = getPromptActivationState(platform);
     if (!canInject || !activeRule || !input) return false;
@@ -18,6 +23,7 @@ export function useBeforeSend(platform: ContentPlatform) {
     if (nextValue === currentValue) return false;
 
     writeInputValue(input, nextValue);
+    options.onInjected?.();
     return true;
   }
 

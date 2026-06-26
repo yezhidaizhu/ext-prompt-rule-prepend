@@ -9,7 +9,7 @@ import {
 } from '@floating-ui/vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { findPlatformRule, resolveActiveRule, createRuleForPlatform } from '@/utils/promptConfig';
+import { findPlatformRule, resolveActiveRule, createRuleForPlatform, updateRule } from '@/utils/promptConfig';
 import { usePromptConfigStore } from '@/stores/promptConfigStore';
 import StatusToggleIcon from './StatusToggleIcon.vue';
 import EmptyListIcon from '@/shared/components/EmptyListIcon.vue';
@@ -24,7 +24,9 @@ const store = usePromptConfigStore();
 const { config } = storeToRefs(store);
 
 const open = ref(false);
-const createDialogOpen = ref(false);
+const ruleFormOpen = ref(false);
+const ruleFormMode = ref<'create' | 'edit'>('create');
+const editingRuleId = ref('');
 const enableAfterCreate = ref(false);
 const iconRotation = ref(0);
 const reference = ref<HTMLElement | null>(null);
@@ -50,12 +52,19 @@ const platformName = computed(() =>
   ?? props.platformId);
 
 const createDialogHint = computed(() => {
+  if (ruleFormMode.value === 'edit') {
+    return `修改后将应用于 ${platformName.value}`;
+  }
+
   if (enableAfterCreate.value) {
     return '添加规则后将自动开启注入';
   }
 
   return `创建后将关联到 ${platformName.value}`;
 });
+
+const editingRule = computed(() =>
+  config.value.rules.find((rule) => rule.id === editingRuleId.value) ?? null);
 
 const { floatingStyles, update } = useFloating(reference, floating, {
   placement: 'top-start',
@@ -91,13 +100,25 @@ function selectRule(ruleId: string) {
 }
 
 async function openCreateDialog(options: { enableAfterCreate?: boolean } = {}) {
+  ruleFormMode.value = 'create';
+  editingRuleId.value = '';
   enableAfterCreate.value = options.enableAfterCreate ?? false;
-  createDialogOpen.value = true;
+  ruleFormOpen.value = true;
   open.value = false;
 }
 
-function closeCreateDialog() {
-  createDialogOpen.value = false;
+function openEditDialog(ruleId: string) {
+  ruleFormMode.value = 'edit';
+  editingRuleId.value = ruleId;
+  enableAfterCreate.value = false;
+  ruleFormOpen.value = true;
+  open.value = false;
+}
+
+function closeRuleFormDialog() {
+  ruleFormOpen.value = false;
+  ruleFormMode.value = 'create';
+  editingRuleId.value = '';
   enableAfterCreate.value = false;
 }
 
@@ -116,7 +137,17 @@ function handleRuleCreate(payload: { content: string; enabled: boolean }) {
   }
 
   void store.persist();
-  closeCreateDialog();
+  closeRuleFormDialog();
+}
+
+function handleRuleSave(payload: { content: string; enabled: boolean }) {
+  if (!editingRuleId.value) return;
+
+  const saved = updateRule(config.value, editingRuleId.value, payload);
+  if (!saved) return;
+
+  void store.persist();
+  closeRuleFormDialog();
 }
 
 function toggleEnabled() {
@@ -155,7 +186,7 @@ function isEventInsidePanel(event: Event) {
 }
 
 function handlePointerDown(event: PointerEvent) {
-  if (createDialogOpen.value) return;
+  if (ruleFormOpen.value) return;
   if (!open.value) return;
   if (isEventInsidePanel(event)) return;
   closePanel();
@@ -163,8 +194,8 @@ function handlePointerDown(event: PointerEvent) {
 
 function handleKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
-    if (createDialogOpen.value) {
-      closeCreateDialog();
+    if (ruleFormOpen.value) {
+      closeRuleFormDialog();
       return;
     }
 
@@ -290,24 +321,49 @@ onBeforeUnmount(() => {
                   已开启，但当前没有可注入的规则
                 </p>
 
-                <button
+                <div
                   v-for="rule in platformRules"
                   :key="rule.id"
-                  type="button"
                   class="prompt-rule-item"
                   :class="activeRuleId === rule.id ? 'prompt-rule-item-active' : ''"
-                  @click="selectRule(rule.id)"
                 >
-                  <p class="prompt-rule-item-text">
-                    {{ rule.content }}
-                  </p>
-                  <span
-                    v-if="activeRuleId === rule.id"
-                    class="prompt-rule-check"
+                  <button
+                    type="button"
+                    class="prompt-rule-item-main"
+                    @click="selectRule(rule.id)"
                   >
-                    ✓
-                  </span>
-                </button>
+                    <p class="prompt-rule-item-text">
+                      {{ rule.content }}
+                    </p>
+                    <span
+                      v-if="activeRuleId === rule.id"
+                      class="prompt-rule-check"
+                    >
+                      ✓
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    class="prompt-rule-item-edit"
+                    title="编辑规则"
+                    aria-label="编辑规则"
+                    @click.stop="openEditDialog(rule.id)"
+                  >
+                    <svg
+                      class="prompt-rule-item-edit-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                  </button>
+                </div>
               </template>
             </div>
           </div>
@@ -316,11 +372,15 @@ onBeforeUnmount(() => {
     </Transition>
 
     <RuleCreateDialog
-      v-if="createDialogOpen"
+      v-if="ruleFormOpen"
+      :mode="ruleFormMode"
       :platform-name="platformName"
       :hint="createDialogHint"
-      @close="closeCreateDialog"
+      :initial-content="editingRule?.content ?? ''"
+      :initial-enabled="editingRule?.enabled ?? true"
+      @close="closeRuleFormDialog"
       @create="handleRuleCreate"
+      @save="handleRuleSave"
     />
   </div>
 </template>
@@ -552,14 +612,8 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 40px;
   align-items: center;
-  gap: 8px;
-  border: 0;
+  gap: 4px;
   border-top: 1px solid rgb(255 255 255 / 0.08);
-  background: transparent;
-  padding: 0 12px;
-  color: #d4d4d8;
-  text-align: left;
-  cursor: pointer;
   transition:
     background-color 160ms ease,
     color 160ms ease;
@@ -569,13 +623,61 @@ onBeforeUnmount(() => {
   border-top: 0;
 }
 
+.prompt-rule-item-active {
+  background: rgb(52 245 163 / 0.1);
+  color: #f4f4f5;
+}
+
+.prompt-rule-item-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  padding: 0 0 0 12px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .prompt-rule-item:hover {
   background: rgb(255 255 255 / 0.06);
 }
 
-.prompt-rule-item-active {
-  background: rgb(52 245 163 / 0.1);
+.prompt-rule-item-active:hover {
+  background: rgb(52 245 163 / 0.14);
+}
+
+.prompt-rule-item-edit {
+  display: grid;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  margin-right: 4px;
+  padding: 0;
+  color: #71717a;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.prompt-rule-item-edit:hover {
+  background: rgb(255 255 255 / 0.08);
   color: #f4f4f5;
+}
+
+.prompt-rule-item-edit-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
 }
 
 .prompt-rule-item-text {
@@ -587,6 +689,11 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 14px;
   line-height: 20px;
+  color: #d4d4d8;
+}
+
+.prompt-rule-item-active .prompt-rule-item-text {
+  color: #f4f4f5;
 }
 
 .prompt-rule-check {
