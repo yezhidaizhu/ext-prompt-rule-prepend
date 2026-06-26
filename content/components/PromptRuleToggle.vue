@@ -31,6 +31,7 @@ const enableAfterCreate = ref(false);
 const iconRotation = ref(0);
 const reference = ref<HTMLElement | null>(null);
 const floating = ref<HTMLElement | null>(null);
+const hoveredRuleId = ref('');
 
 const platformRules = computed(() =>
   config.value.rules.filter(
@@ -46,6 +47,8 @@ const availableRule = computed(() => findPlatformRule(config.value, props.platfo
 const canInject = computed(() => Boolean(injectableRule.value));
 const iconActive = computed(() => enabled.value && canInject.value);
 const activeRuleId = computed(() => availableRule.value?.id ?? '');
+const previewRule = computed(() =>
+  platformRules.value.find((rule) => rule.id === hoveredRuleId.value) ?? null);
 
 const platformName = computed(() =>
   config.value.platforms.find((platform) => platform.id === props.platformId)?.name
@@ -87,6 +90,7 @@ const { floatingStyles, update } = useFloating(reference, floating, {
 
 async function togglePanel() {
   open.value = !open.value;
+  hoveredRuleId.value = '';
 
   if (open.value) {
     await nextTick();
@@ -176,6 +180,7 @@ watch(
 
 function closePanel() {
   open.value = false;
+  hoveredRuleId.value = '';
 }
 
 function isEventInsidePanel(event: Event) {
@@ -291,7 +296,10 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <div class="prompt-rule-list">
+            <div
+              class="prompt-rule-list"
+              @mouseleave="hoveredRuleId = ''"
+            >
               <div v-if="!hasPlatformRules" class="prompt-rule-empty">
                 <EmptyListIcon class="prompt-rule-empty-icon" />
                 <p class="prompt-rule-empty-title">
@@ -326,6 +334,8 @@ onBeforeUnmount(() => {
                   :key="rule.id"
                   class="prompt-rule-item"
                   :class="activeRuleId === rule.id ? 'prompt-rule-item-active' : ''"
+                  @mouseenter="hoveredRuleId = rule.id"
+                  @focusin="hoveredRuleId = rule.id"
                 >
                   <button
                     type="button"
@@ -361,6 +371,16 @@ onBeforeUnmount(() => {
               </template>
             </div>
           </div>
+
+          <Transition name="prompt-rule-preview">
+            <aside
+              v-if="previewRule"
+              class="prompt-rule-preview-panel"
+            >
+              <p class="prompt-rule-preview-title">规则内容</p>
+              <p class="prompt-rule-preview-content">{{ previewRule.content }}</p>
+            </aside>
+          </Transition>
         </div>
       </div>
     </Transition>
@@ -408,7 +428,7 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-floating {
-  width: 360px;
+  width: 344px;
   max-width: calc(100vw - 24px);
 }
 
@@ -456,6 +476,40 @@ onBeforeUnmount(() => {
   color: #ececec;
   text-align: left;
   box-shadow: 0 12px 36px rgb(0 0 0 / 0.28);
+}
+
+.prompt-rule-preview-panel {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 8px);
+  width: 320px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgb(255 255 255 / 0.06);
+  border-radius: 16px;
+  background: #1f1f1f;
+  box-shadow: 0 12px 36px rgb(0 0 0 / 0.28);
+  padding: 12px 14px;
+  text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: #4b4b4b transparent;
+}
+
+.prompt-rule-preview-title {
+  margin: 0 0 8px;
+  color: #b4b4b4;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.prompt-rule-preview-content {
+  margin: 0;
+  color: #ececec;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .prompt-rule-popover-header {
@@ -531,7 +585,8 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-list {
-  overflow: hidden;
+  max-height: 260px;
+  overflow-y: auto;
   padding: 2px 6px 8px;
   scrollbar-width: thin;
   scrollbar-color: #4b4b4b transparent;
@@ -610,7 +665,7 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-item-active {
-  background: #333333;
+  background: rgb(25 195 125 / 0.16);
   color: #ececec;
 }
 
@@ -634,7 +689,7 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-item-active:hover {
-  background: #3a3a3a;
+  background: rgb(25 195 125 / 0.2);
 }
 
 .prompt-rule-item-edit {
@@ -708,5 +763,24 @@ onBeforeUnmount(() => {
 .prompt-rule-popover-enter-to .prompt-rule-popover-panel,
 .prompt-rule-popover-leave-from .prompt-rule-popover-panel {
   transform: translateY(0);
+}
+
+.prompt-rule-preview-enter-active,
+.prompt-rule-preview-leave-active {
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.prompt-rule-preview-enter-from,
+.prompt-rule-preview-leave-to {
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+.prompt-rule-preview-enter-to,
+.prompt-rule-preview-leave-from {
+  opacity: 1;
+  transform: translateX(0);
 }
 </style>
