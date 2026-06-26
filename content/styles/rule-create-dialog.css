@@ -1,0 +1,195 @@
+#prompt-rule-prepend-dialog-root {
+  position: relative;
+  z-index: 600;
+}
+
+.prompt-rule-create-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(2px);
+  color-scheme: dark;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.prompt-rule-create-overlay *,
+.prompt-rule-create-overlay *::before,
+.prompt-rule-create-overlay *::after {
+  box-sizing: border-box;
+}
+
+.prompt-rule-create-dialog {
+  width: min(100%, 340px);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 12px;
+  background: rgb(32 33 36 / 0.96);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.35);
+}
+
+.prompt-rule-create-header {
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  padding: 14px 16px;
+}
+
+.prompt-rule-create-title {
+  margin: 0;
+  color: #f4f4f5;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.prompt-rule-create-hint {
+  margin: 6px 0 0;
+  color: #71717a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.prompt-rule-create-body {
+  padding: 14px 16px;
+}
+
+.prompt-rule-create-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 8px;
+  background: rgb(0 0 0 / 0.18);
+  padding: 10px 12px;
+  color: #f4f4f5;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 160ms ease;
+}
+
+.prompt-rule-create-textarea:focus {
+  border-color: rgb(52 245 163 / 0.45);
+}
+
+.prompt-rule-create-textarea::placeholder {
+  color: #71717a;
+}
+
+.prompt-rule-create-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.prompt-rule-create-switch-copy {
+  min-width: 0;
+}
+
+.prompt-rule-create-switch-label {
+  display: block;
+  color: #f4f4f5;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.prompt-rule-create-switch-desc {
+  display: block;
+  margin-top: 2px;
+  color: #71717a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.prompt-rule-create-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.prompt-rule-create-switch.is-on {
+  background: #34f5a3;
+}
+
+.prompt-rule-create-switch.is-off {
+  background: #52525b;
+}
+
+.prompt-rule-create-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 160ms ease;
+}
+
+.prompt-rule-create-switch.is-on .prompt-rule-create-switch-thumb {
+  transform: translateX(16px);
+}
+
+.prompt-rule-create-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  padding: 10px 12px;
+}
+
+.prompt-rule-create-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.prompt-rule-create-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.prompt-rule-create-button-muted {
+  background: transparent;
+  color: #a1a1aa;
+}
+
+.prompt-rule-create-button-muted:hover {
+  background: rgb(255 255 255 / 0.06);
+}
+
+.prompt-rule-create-button-primary {
+  background: rgb(52 245 163 / 0.14);
+  color: #6ee7b7;
+}
+
+.prompt-rule-create-button-primary:hover:not(:disabled) {
+  background: rgb(52 245 163 / 0.22);
+}

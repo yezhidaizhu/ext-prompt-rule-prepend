@@ -293,15 +293,40 @@ export function observePromptConfigChanges(listener: (config: PromptConfig) => v
   return () => onChanged.removeListener(handleStorageChanged);
 }
 
-export function getActiveRuleFromConfig(config: PromptConfig, platformId?: string) {
-  if (!config.enabled) return '';
+export function createRuleForPlatform(
+  config: PromptConfig,
+  platformId: string,
+  content: string,
+  options: {
+    enabled?: boolean;
+    select?: boolean;
+  } = {},
+) {
+  const trimmed = content.trim();
+  if (!trimmed) return '';
 
+  const id = `rule-${Date.now()}`;
+  config.rules.unshift({
+    id,
+    content: trimmed,
+    enabled: options.enabled ?? true,
+    platformIds: [platformId],
+  });
+
+  if (options.select !== false) {
+    config.selectedRuleId = id;
+  }
+
+  return id;
+}
+
+export function findPlatformRule(config: PromptConfig, platformId?: string) {
   const platform = platformId
     ? config.platforms.find((item) => item.id === platformId && item.enabled)
     : null;
 
   if (platformId && !platform) {
-    return '';
+    return null;
   }
 
   const preferredRuleIds = [
@@ -313,15 +338,25 @@ export function getActiveRuleFromConfig(config: PromptConfig, platformId?: strin
     const matchedRule = config.rules.find((item) =>
       item.id === ruleId
       && item.enabled
+      && item.content.trim()
       && (!platformId || item.platformIds.includes(platformId)));
 
-    if (matchedRule?.content?.trim()) {
-      return matchedRule.content.trim();
+    if (matchedRule) {
+      return matchedRule;
     }
   }
 
-  const fallbackRule = config.rules.find((item) =>
-    item.enabled && (!platformId || item.platformIds.includes(platformId)));
+  return config.rules.find((item) =>
+    item.enabled
+    && item.content.trim()
+    && (!platformId || item.platformIds.includes(platformId))) ?? null;
+}
 
-  return fallbackRule?.content?.trim() || '';
+export function resolveActiveRule(config: PromptConfig, platformId?: string) {
+  if (!config.enabled) return null;
+  return findPlatformRule(config, platformId);
+}
+
+export function getActiveRuleFromConfig(config: PromptConfig, platformId?: string) {
+  return resolveActiveRule(config, platformId)?.content.trim() || '';
 }

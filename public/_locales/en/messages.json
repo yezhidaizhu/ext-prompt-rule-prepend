@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "AI Prompt Rule Assistant"
+  },
+  "extDescription": {
+    "message": "Automatically add custom instructions, system prompts, and prompt rules to AI chats like DeepSeek, ChatGPT, and Claude."
+  }
+}

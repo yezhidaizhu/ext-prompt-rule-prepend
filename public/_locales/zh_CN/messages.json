@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "AI 指令规则助手"
+  },
+  "extDescription": {
+    "message": "为 DeepSeek、ChatGPT、Claude 等 AI 聊天自动添加自定义指令、系统提示词和提示词规则，统一管理 Prompt 规则。"
+  }
+}

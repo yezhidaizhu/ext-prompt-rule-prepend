@@ -11,7 +11,7 @@ const props = defineProps<{
 }>();
 
 const platform = useContentPlatform(props.platformId);
-const { hostStyle, toggleVisible } = useTogglePosition(platform);
+const { hostStyle } = useTogglePosition(platform);
 
 useBeforeSend(platform);
 useRulesCollapse(platform);
@@ -19,6 +19,6 @@ useRulesCollapse(platform);
 
 <template>
   <div :style="hostStyle">
-    <PromptRuleToggle v-if="toggleVisible" />
+    <PromptRuleToggle :platform-id="platformId" />
   </div>
 </template>

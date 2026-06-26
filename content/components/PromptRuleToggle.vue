@@ -9,41 +9,57 @@ import {
 } from '@floating-ui/vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { findPlatformRule, resolveActiveRule, createRuleForPlatform } from '@/utils/promptConfig';
 import { usePromptConfigStore } from '@/stores/promptConfigStore';
 import StatusToggleIcon from './StatusToggleIcon.vue';
 import EmptyListIcon from '@/shared/components/EmptyListIcon.vue';
+import { layerZIndex } from '@/utils/content/layerZIndex';
+import RuleCreateDialog from './RuleCreateDialog.vue';
 
-const props = withDefaults(
-  defineProps<{
-    rules?: string[];
-  }>(),
-  {
-    rules: () => [],
-  },
-);
+const props = defineProps<{
+  platformId: string;
+}>();
 
 const store = usePromptConfigStore();
 const { config } = storeToRefs(store);
 
 const open = ref(false);
+const createDialogOpen = ref(false);
+const enableAfterCreate = ref(false);
 const iconRotation = ref(0);
 const reference = ref<HTMLElement | null>(null);
 const floating = ref<HTMLElement | null>(null);
 
-const promptRules = computed(() =>
-  config.value.rules.map((rule) => rule.content).filter(Boolean));
+const platformRules = computed(() =>
+  config.value.rules.filter(
+    (rule) => rule.content.trim() && rule.platformIds.includes(props.platformId),
+  ));
 
-const hasRules = computed(() => promptRules.value.length > 0);
+const hasAnyRules = computed(() => config.value.rules.some((rule) => rule.content.trim()));
+const hasPlatformRules = computed(() => platformRules.value.length > 0);
 
 const enabled = computed(() => config.value.enabled);
+const injectableRule = computed(() => resolveActiveRule(config.value, props.platformId));
+const availableRule = computed(() => findPlatformRule(config.value, props.platformId));
+const canInject = computed(() => Boolean(injectableRule.value));
+const iconActive = computed(() => enabled.value && canInject.value);
+const activeRuleId = computed(() => availableRule.value?.id ?? '');
 
-const selectedRule = computed(() => {
-  const selected = config.value.rules.find((rule) => rule.id === config.value.selectedRuleId);
-  return selected?.content || promptRules.value[0] || '';
+const platformName = computed(() =>
+  config.value.platforms.find((platform) => platform.id === props.platformId)?.name
+  ?? props.platformId);
+
+const createDialogHint = computed(() => {
+  if (enableAfterCreate.value) {
+    return '添加规则后将自动开启注入';
+  }
+
+  return `创建后将关联到 ${platformName.value}`;
 });
 
 const { floatingStyles, update } = useFloating(reference, floating, {
   placement: 'top-start',
+  strategy: 'fixed',
   whileElementsMounted: autoUpdate,
   middleware: [
     offset(14),
@@ -69,28 +85,60 @@ async function togglePanel() {
   }
 }
 
-function selectRule(rule: string) {
-  const matched = config.value.rules.find((item) => item.content === rule);
-  if (!matched) return;
-
-  config.value.selectedRuleId = matched.id;
+function selectRule(ruleId: string) {
+  config.value.selectedRuleId = ruleId;
   void store.persist();
 }
 
+async function openCreateDialog(options: { enableAfterCreate?: boolean } = {}) {
+  enableAfterCreate.value = options.enableAfterCreate ?? false;
+  createDialogOpen.value = true;
+  open.value = false;
+}
+
+function closeCreateDialog() {
+  createDialogOpen.value = false;
+  enableAfterCreate.value = false;
+}
+
+function handleRuleCreate(payload: { content: string; enabled: boolean }) {
+  const ruleId = createRuleForPlatform(
+    config.value,
+    props.platformId,
+    payload.content,
+    { enabled: payload.enabled },
+  );
+
+  if (!ruleId) return;
+
+  if (enableAfterCreate.value && payload.enabled) {
+    config.value.enabled = true;
+  }
+
+  void store.persist();
+  closeCreateDialog();
+}
+
 function toggleEnabled() {
-  config.value.enabled = !config.value.enabled;
+  if (enabled.value) {
+    config.value.enabled = false;
+    void store.persist();
+    return;
+  }
+
+  if (!hasPlatformRules.value) {
+    void openCreateDialog({ enableAfterCreate: true });
+    return;
+  }
+
+  config.value.enabled = true;
   void store.persist();
 }
 
 watch(
   () => config.value.enabled,
-  (value, previous) => {
-    if (previous === undefined) {
-      iconRotation.value = value ? 0 : 180;
-      return;
-    }
-
-    iconRotation.value += 180;
+  (value) => {
+    iconRotation.value = value ? 0 : 180;
   },
   { immediate: true },
 );
@@ -107,6 +155,7 @@ function isEventInsidePanel(event: Event) {
 }
 
 function handlePointerDown(event: PointerEvent) {
+  if (createDialogOpen.value) return;
   if (!open.value) return;
   if (isEventInsidePanel(event)) return;
   closePanel();
@@ -114,6 +163,11 @@ function handlePointerDown(event: PointerEvent) {
 
 function handleKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
+    if (createDialogOpen.value) {
+      closeCreateDialog();
+      return;
+    }
+
     closePanel();
   }
 }
@@ -139,14 +193,14 @@ onBeforeUnmount(() => {
       aria-label="规则列表"
       @click="togglePanel"
     >
-      <StatusToggleIcon :active="enabled" :rotation="iconRotation" />
+      <StatusToggleIcon :active="iconActive" :rotation="iconRotation" />
     </button>
 
     <Transition name="prompt-rule-popover">
       <div
         v-if="open"
         ref="floating"
-        :style="floatingStyles"
+        :style="{ ...floatingStyles, zIndex: layerZIndex.popover }"
         class="prompt-rule-floating"
       >
         <div class="prompt-rule-popover-frame">
@@ -155,18 +209,39 @@ onBeforeUnmount(() => {
           <div class="prompt-rule-popover-panel">
             <div class="prompt-rule-popover-header">
               <p class="prompt-rule-popover-title">规则列表</p>
-              <button
-                type="button"
-                class="prompt-rule-power"
-                :class="
-                  enabled
-                    ? 'prompt-rule-power-active'
-                    : 'prompt-rule-power-inactive'
-                "
-                :aria-label="enabled ? '已启用' : '已禁用'"
-                :title="enabled ? '已启用' : '已禁用'"
-                @click="toggleEnabled"
-              >
+              <div class="prompt-rule-header-actions">
+                <button
+                  type="button"
+                  class="prompt-rule-icon-button"
+                  title="添加规则"
+                  aria-label="添加规则"
+                  @click.stop="openCreateDialog()"
+                >
+                  <svg
+                    class="prompt-rule-header-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 5v14" />
+                    <path d="M5 12h14" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="prompt-rule-power"
+                  :class="
+                    enabled
+                      ? 'prompt-rule-power-active'
+                      : 'prompt-rule-power-inactive'
+                  "
+                  :aria-label="enabled ? '已启用' : '已禁用'"
+                  :title="enabled ? '已启用' : '已禁用'"
+                  @click.stop="toggleEnabled"
+                >
                 <svg
                   class="prompt-rule-power-icon"
                   viewBox="0 0 24 24"
@@ -181,39 +256,72 @@ onBeforeUnmount(() => {
                   <path d="M18.4 6.6a8 8 0 1 1-12.8 0" />
                   <path v-if="!enabled" d="M4 4l16 16" />
                 </svg>
-              </button>
+                </button>
+              </div>
             </div>
 
             <div class="prompt-rule-list">
-              <div v-if="!hasRules" class="prompt-rule-empty">
+              <div v-if="!hasPlatformRules" class="prompt-rule-empty">
                 <EmptyListIcon class="prompt-rule-empty-icon" />
-                <p class="prompt-rule-empty-title">暂无规则</p>
-                <p class="prompt-rule-empty-hint">打开扩展 popup 添加规则</p>
+                <p class="prompt-rule-empty-title">
+                  {{ hasAnyRules ? '当前平台暂无可用规则' : '暂无规则' }}
+                </p>
+                <p class="prompt-rule-empty-hint">
+                  {{
+                    enabled
+                      ? '已开启注入，请先为当前平台添加一条规则'
+                      : '添加一条规则后即可选择并开启注入'
+                  }}
+                </p>
+                <button
+                  type="button"
+                  class="prompt-rule-empty-action"
+                  @click.stop="openCreateDialog()"
+                >
+                  添加规则
+                </button>
               </div>
 
-              <button
-                v-for="rule in promptRules"
-                :key="rule"
-                type="button"
-                class="prompt-rule-item"
-                :class="selectedRule === rule ? 'prompt-rule-item-active' : ''"
-                @click="selectRule(rule)"
-              >
-                <p class="prompt-rule-item-text">
-                  {{ rule }}
-                </p>
-                <span
-                  v-if="selectedRule === rule"
-                  class="prompt-rule-check"
+              <template v-else>
+                <p
+                  v-if="enabled && !canInject"
+                  class="prompt-rule-notice"
                 >
-                  ✓
-                </span>
-              </button>
+                  已开启，但当前没有可注入的规则
+                </p>
+
+                <button
+                  v-for="rule in platformRules"
+                  :key="rule.id"
+                  type="button"
+                  class="prompt-rule-item"
+                  :class="activeRuleId === rule.id ? 'prompt-rule-item-active' : ''"
+                  @click="selectRule(rule.id)"
+                >
+                  <p class="prompt-rule-item-text">
+                    {{ rule.content }}
+                  </p>
+                  <span
+                    v-if="activeRuleId === rule.id"
+                    class="prompt-rule-check"
+                  >
+                    ✓
+                  </span>
+                </button>
+              </template>
             </div>
           </div>
         </div>
       </div>
     </Transition>
+
+    <RuleCreateDialog
+      v-if="createDialogOpen"
+      :platform-name="platformName"
+      :hint="createDialogHint"
+      @close="closeCreateDialog"
+      @create="handleRuleCreate"
+    />
   </div>
 </template>
 
@@ -246,7 +354,6 @@ onBeforeUnmount(() => {
 }
 
 .prompt-rule-floating {
-  z-index: 2147483647;
   width: 320px;
   max-width: calc(100vw - 24px);
 }
@@ -308,7 +415,7 @@ onBeforeUnmount(() => {
 
 .prompt-rule-popover-header {
   display: flex;
-  height: 40px;
+  height: 44px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -324,19 +431,41 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
+.prompt-rule-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prompt-rule-icon-button,
 .prompt-rule-power {
   display: grid;
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   padding: 0;
   cursor: pointer;
   transition:
     background-color 160ms ease,
     color 160ms ease;
+}
+
+.prompt-rule-icon-button {
+  color: #a1a1aa;
+}
+
+.prompt-rule-icon-button:hover {
+  background: rgb(255 255 255 / 0.06);
+  color: #f4f4f5;
+}
+
+.prompt-rule-header-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .prompt-rule-power:hover {
@@ -361,6 +490,16 @@ onBeforeUnmount(() => {
   overflow: hidden;
   scrollbar-width: thin;
   scrollbar-color: #52525b transparent;
+}
+
+.prompt-rule-notice {
+  margin: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  padding: 10px 12px;
+  color: #fbbf24;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .prompt-rule-empty {
@@ -389,6 +528,23 @@ onBeforeUnmount(() => {
   color: #71717a;
   font-size: 12px;
   line-height: 1.4;
+}
+
+.prompt-rule-empty-action {
+  margin-top: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(52 245 163 / 0.14);
+  padding: 6px 12px;
+  color: #6ee7b7;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.prompt-rule-empty-action:hover {
+  background: rgb(52 245 163 / 0.22);
 }
 
 .prompt-rule-item {

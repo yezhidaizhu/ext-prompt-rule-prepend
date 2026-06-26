@@ -38,7 +38,7 @@ const message = ref('');
       <div class="relative">
         <div class="relative flex items-end gap-3">
           <div class="absolute bottom-[82px] left-0 z-10">
-            <PromptRuleToggle />
+            <PromptRuleToggle platform-id="deepseek" />
           </div>
 
           <textarea

@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "AI プロンプトルール助手"
+  },
+  "extDescription": {
+    "message": "DeepSeek、ChatGPT、Claude などの AI チャットに、カスタム指示、システムプロンプト、プロンプトルールを自動追加します。"
+  }
+}

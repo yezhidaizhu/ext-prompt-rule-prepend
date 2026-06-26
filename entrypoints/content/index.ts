@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import { platformPresets } from '@/config/platforms';
 import { getCurrentPlatformPreset } from '@/platforms';
 import { usePromptConfigStore } from '@/stores/promptConfigStore';
+import { ensureDialogPortal } from '@/utils/content/dialogPortal';
 import ContentApp from './App.vue';
 
 export default defineContentScript({
@@ -18,9 +19,17 @@ export default defineContentScript({
       return;
     }
 
+    const mountFlag = '__promptRulePrependUiMounted__';
+    if ((globalThis as Record<string, unknown>)[mountFlag]) {
+      console.debug('[prompt-rule-prepend] content script already mounted, skip');
+      return;
+    }
+    (globalThis as Record<string, unknown>)[mountFlag] = true;
+
     const pinia = createPinia();
     setActivePinia(pinia);
     await usePromptConfigStore().init();
+    ensureDialogPortal();
 
     let app: VueApp<Element> | undefined;
 

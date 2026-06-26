@@ -6,31 +6,40 @@ defineProps<{
 </script>
 
 <template>
-  <svg
-    class="status-toggle-icon"
-    :class="active ? 'is-active' : 'is-inactive'"
+  <div
+    class="status-toggle-icon-wrap"
     :style="{ transform: `rotate(${rotation}deg)` }"
-    viewBox="0 0 100 100"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
   >
-    <path class="status-toggle-icon__shape" d="M50 17.18 L88 83 H12 Z" />
-    <path class="status-toggle-icon__inner" d="M50 35.03 L70 69.67 H30 Z" />
-  </svg>
+    <svg
+      class="status-toggle-icon"
+      :class="active ? 'is-active' : 'is-inactive'"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path class="status-toggle-icon__shape" d="M50 17.18 L88 83 H12 Z" />
+      <path class="status-toggle-icon__inner" d="M50 35.03 L70 69.67 H30 Z" />
+    </svg>
+  </div>
 </template>
 
 <style scoped>
+.status-toggle-icon-wrap {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  transform-origin: center;
+  transition: transform 220ms ease;
+}
+
 .status-toggle-icon {
   display: block;
   height: 24px;
   width: 24px;
   color: #8b8f98;
   overflow: visible;
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    color 180ms ease,
-    transform 220ms ease;
+  transition: color 180ms ease;
 }
 
 .status-toggle-icon.is-active {
