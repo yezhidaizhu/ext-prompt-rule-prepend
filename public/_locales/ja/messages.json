@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "AI プロンプトルール助手"
+    "message": "AI プロンプトルール助手 | AAA"
   },
   "extDescription": {
     "message": "再利用できるプロンプトルールを管理し、DeepSeek、ChatGPT、Kimi で送信前に追加します。"

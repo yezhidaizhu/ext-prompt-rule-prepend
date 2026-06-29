@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "AI 프롬프트 규칙 도우미"
+    "message": "AI 프롬프트 규칙 도우미 | AAA"
   },
   "extDescription": {
     "message": "재사용 가능한 프롬프트 규칙을 관리하고 DeepSeek, ChatGPT, Kimi에서 전송 전에 추가합니다."

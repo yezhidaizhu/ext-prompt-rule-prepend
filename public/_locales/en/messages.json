@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "AI Prompt Rule Assistant"
+    "message": "AI Prompt Rule Assistant | AAA"
   },
   "extDescription": {
     "message": "Manage reusable prompt rules and append them before sending in DeepSeek, ChatGPT, and Kimi."
