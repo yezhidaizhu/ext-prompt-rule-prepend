@@ -317,6 +317,7 @@ export async function loadPromptConfig(): Promise<PromptConfig> {
 
 export async function resetPromptConfig(): Promise<PromptConfig> {
   const config = createDefaultPromptConfig();
+  config.enabled = true;
   await writeToStorage(promptConfigStorageKey, config);
   emitPromptConfigUpdated(config);
   return config;
