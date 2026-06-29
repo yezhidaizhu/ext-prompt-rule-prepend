@@ -3,6 +3,6 @@
     "message": "AI プロンプトルール助手"
   },
   "extDescription": {
-    "message": "DeepSeek、ChatGPT、Claude などの AI チャットに、カスタム指示、システムプロンプト、プロンプトルールを自動追加します。"
+    "message": "再利用できるプロンプトルールを管理し、DeepSeek、ChatGPT、Kimi で送信前に追加します。"
   }
 }

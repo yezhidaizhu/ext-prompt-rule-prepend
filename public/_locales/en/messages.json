@@ -3,6 +3,6 @@
     "message": "AI Prompt Rule Assistant"
   },
   "extDescription": {
-    "message": "Automatically add custom instructions, system prompts, and prompt rules to AI chats like DeepSeek, ChatGPT, and Claude."
+    "message": "Manage reusable prompt rules and append them before sending in DeepSeek, ChatGPT, and Kimi."
   }
 }
