@@ -25,12 +25,13 @@ function ensureFoldStyles() {
   style.textContent = `
     .${foldedClass} {
       --prp-fold-bg: #ffffff;
-      --prp-fold-bg-hover: #f7f7f7;
-      --prp-fold-border: rgb(0 0 0 / 0.08);
-      --prp-fold-text: rgb(53 55 64);
-      --prp-fold-icon: #19c37d;
-      --prp-fold-body-text: rgb(31 41 55);
-      --prp-fold-divider: rgb(0 0 0 / 0.08);
+      --prp-fold-bg-hover: #ffffff;
+      --prp-fold-border: rgb(24 24 27 / 0.1);
+      --prp-fold-text: #18181b;
+      --prp-fold-icon: #009f6b;
+      --prp-fold-body-text: #18181b;
+      --prp-fold-divider: rgb(24 24 27 / 0.08);
+      --prp-fold-shadow: rgb(24 24 27 / 0.08);
       display: block;
       max-width: 100%;
       width: fit-content;
@@ -44,6 +45,7 @@ function ensureFoldStyles() {
       font-size: 12px;
       line-height: 18px;
       list-style: none;
+      box-shadow: 0 1px 3px var(--prp-fold-shadow);
     }
 
     .${foldedClass}[${foldedThemeAttribute}="black"] {
@@ -54,6 +56,7 @@ function ensureFoldStyles() {
       --prp-fold-icon: #19c37d;
       --prp-fold-body-text: #ececec;
       --prp-fold-divider: rgb(255 255 255 / 0.06);
+      --prp-fold-shadow: rgb(0 0 0 / 0.18);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -65,6 +68,7 @@ function ensureFoldStyles() {
         --prp-fold-icon: #19c37d;
         --prp-fold-body-text: #ececec;
         --prp-fold-divider: rgb(255 255 255 / 0.06);
+        --prp-fold-shadow: rgb(0 0 0 / 0.18);
       }
     }
 

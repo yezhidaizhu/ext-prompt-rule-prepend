@@ -4,6 +4,21 @@
 }
 
 .prompt-rule-create-overlay {
+  --prp-create-overlay: rgb(0 0 0 / 0.5);
+  --prp-create-surface: #1f1f1f;
+  --prp-create-control: #2b2b2b;
+  --prp-create-control-hover: #303030;
+  --prp-create-text: #ececec;
+  --prp-create-text-muted: #8e8e8e;
+  --prp-create-border: rgb(255 255 255 / 0.06);
+  --prp-create-accent: #19c37d;
+  --prp-create-accent-border: rgb(25 195 125 / 0.24);
+  --prp-create-accent-focus: rgb(25 195 125 / 0.56);
+  --prp-create-switch-off: #4b4b4b;
+  --prp-create-primary-bg: #ececec;
+  --prp-create-primary-text: #171717;
+  --prp-create-primary-hover: #ffffff;
+  --prp-create-shadow: rgb(0 0 0 / 0.32);
   position: fixed;
   inset: 0;
   z-index: 600;
@@ -12,7 +27,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgb(0 0 0 / 0.5);
+  background: var(--prp-create-overlay);
   color-scheme: dark;
   font-family:
     Inter,
@@ -24,6 +39,46 @@
     sans-serif;
 }
 
+.prompt-rule-create-theme-white {
+  --prp-create-overlay: rgb(24 24 27 / 0.22);
+  --prp-create-surface: #ffffff;
+  --prp-create-control: #ffffff;
+  --prp-create-control-hover: rgb(24 24 27 / 0.045);
+  --prp-create-text: #18181b;
+  --prp-create-text-muted: #71717a;
+  --prp-create-border: rgb(24 24 27 / 0.1);
+  --prp-create-accent: #009f6b;
+  --prp-create-accent-border: rgb(0 159 107 / 0.2);
+  --prp-create-accent-focus: rgb(0 159 107 / 0.48);
+  --prp-create-switch-off: #d4d4d8;
+  --prp-create-primary-bg: #18181b;
+  --prp-create-primary-text: #ffffff;
+  --prp-create-primary-hover: #27272a;
+  --prp-create-shadow: rgb(24 24 27 / 0.14);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  .prompt-rule-create-theme-auto {
+    --prp-create-overlay: rgb(24 24 27 / 0.22);
+    --prp-create-surface: #ffffff;
+    --prp-create-control: #ffffff;
+    --prp-create-control-hover: rgb(24 24 27 / 0.045);
+    --prp-create-text: #18181b;
+    --prp-create-text-muted: #71717a;
+    --prp-create-border: rgb(24 24 27 / 0.1);
+    --prp-create-accent: #009f6b;
+    --prp-create-accent-border: rgb(0 159 107 / 0.2);
+    --prp-create-accent-focus: rgb(0 159 107 / 0.48);
+    --prp-create-switch-off: #d4d4d8;
+    --prp-create-primary-bg: #18181b;
+    --prp-create-primary-text: #ffffff;
+    --prp-create-primary-hover: #27272a;
+    --prp-create-shadow: rgb(24 24 27 / 0.14);
+    color-scheme: light;
+  }
+}
+
 .prompt-rule-create-overlay *,
 .prompt-rule-create-overlay *::before,
 .prompt-rule-create-overlay *::after {
@@ -33,10 +88,10 @@
 .prompt-rule-create-dialog {
   width: min(100%, 420px);
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.06);
+  border: 1px solid var(--prp-create-border);
   border-radius: 16px;
-  background: #1f1f1f;
-  box-shadow: 0 12px 36px rgb(0 0 0 / 0.32);
+  background: var(--prp-create-surface);
+  box-shadow: 0 12px 36px var(--prp-create-shadow);
 }
 
 .prompt-rule-create-header {
@@ -45,7 +100,7 @@
 
 .prompt-rule-create-title {
   margin: 0;
-  color: #ececec;
+  color: var(--prp-create-text);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
@@ -53,7 +108,7 @@
 
 .prompt-rule-create-hint {
   margin: 6px 0 0;
-  color: #8e8e8e;
+  color: var(--prp-create-text-muted);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -67,12 +122,12 @@
   width: 100%;
   min-height: 140px;
   resize: vertical;
-  border: 1px solid rgb(25 195 125 / 0.24);
+  border: 1px solid var(--prp-create-accent-border);
   border-radius: 8px;
-  background: #2b2b2b;
+  background: var(--prp-create-control);
   padding: 10px 12px;
-  color: #ececec;
-  caret-color: #19c37d;
+  color: var(--prp-create-text);
+  caret-color: var(--prp-create-accent);
   font-family: inherit;
   font-size: 13px;
   line-height: 1.5;
@@ -82,9 +137,9 @@
 }
 
 .prompt-rule-create-textarea:focus {
-  border-color: rgb(25 195 125 / 0.56);
+  border-color: var(--prp-create-accent-focus);
   outline: none !important;
-  box-shadow: 0 0 0 1px rgb(25 195 125 / 0.24);
+  box-shadow: 0 0 0 1px var(--prp-create-accent-border);
 }
 
 .prompt-rule-create-textarea:focus-visible {
@@ -92,7 +147,7 @@
 }
 
 .prompt-rule-create-textarea::placeholder {
-  color: #8e8e8e;
+  color: var(--prp-create-text-muted);
 }
 
 .prompt-rule-create-switch-row {
@@ -109,7 +164,7 @@
 
 .prompt-rule-create-switch-label {
   display: block;
-  color: #ececec;
+  color: var(--prp-create-text);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
@@ -118,7 +173,7 @@
 .prompt-rule-create-switch-desc {
   display: block;
   margin-top: 2px;
-  color: #8e8e8e;
+  color: var(--prp-create-text-muted);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -136,11 +191,11 @@
 }
 
 .prompt-rule-create-switch.is-on {
-  background: #19c37d;
+  background: var(--prp-create-accent);
 }
 
 .prompt-rule-create-switch.is-off {
-  background: #4b4b4b;
+  background: var(--prp-create-switch-off);
 }
 
 .prompt-rule-create-switch-thumb {
@@ -184,18 +239,18 @@
 
 .prompt-rule-create-button-muted {
   background: transparent;
-  color: #b4b4b4;
+  color: var(--prp-create-text-muted);
 }
 
 .prompt-rule-create-button-muted:hover {
-  background: #303030;
+  background: var(--prp-create-control-hover);
 }
 
 .prompt-rule-create-button-primary {
-  background: #ececec;
-  color: #171717;
+  background: var(--prp-create-primary-bg);
+  color: var(--prp-create-primary-text);
 }
 
 .prompt-rule-create-button-primary:hover:not(:disabled) {
-  background: #ffffff;
+  background: var(--prp-create-primary-hover);
 }

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+import { usePromptConfigStore } from '@/stores/promptConfigStore';
 import { resolveDialogPortalTarget, setCreateDialogOpen } from '@/utils/content/dialogPortal';
 
 const props = withDefaults(defineProps<{
@@ -26,8 +28,11 @@ const enabled = ref(true);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const portalTarget = resolveDialogPortalTarget();
 const { t } = useI18n();
+const store = usePromptConfigStore();
+const { config } = storeToRefs(store);
 
 const isEditMode = computed(() => props.mode === 'edit');
+const themeClass = computed(() => `prompt-rule-create-theme-${config.value.settings.uiTheme}`);
 const dialogTitle = computed(() => (isEditMode.value ? t('content.createDialog.editTitle') : t('content.createDialog.createTitle')));
 const submitLabel = computed(() => (isEditMode.value ? t('content.createDialog.save') : t('content.createDialog.create')));
 const switchLabel = computed(() => (isEditMode.value ? t('content.createDialog.enableRule') : t('content.createDialog.enableAfterCreate')));
@@ -92,6 +97,7 @@ function handleKeydown(event: KeyboardEvent) {
   <Teleport :to="portalTarget">
     <div
       class="prompt-rule-create-overlay"
+      :class="themeClass"
       @click.self="emit('close')"
     >
       <section

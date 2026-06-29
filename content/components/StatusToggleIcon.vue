@@ -8,7 +8,10 @@ defineProps<{
 <template>
   <div
     class="status-toggle-icon-wrap"
-    :style="{ transform: `rotate(${rotation}deg)` }"
+    :style="{
+      '--prp-icon-rotation': `${rotation}deg`,
+      transform: `scale(var(--prp-icon-scale, 1)) rotate(${rotation}deg)`,
+    }"
   >
     <svg
       class="status-toggle-icon"
@@ -30,24 +33,28 @@ defineProps<{
   height: 24px;
   place-items: center;
   transform-origin: center;
-  transition: transform 220ms ease;
+  transition: transform 160ms ease;
 }
 
 .status-toggle-icon {
   display: block;
   height: 24px;
   width: 24px;
-  color: #8b8f98;
+  color: var(--prp-icon-muted, #8b8f98);
   overflow: visible;
   transition: color 180ms ease;
 }
 
+.prompt-rule-trigger:hover .status-toggle-icon-wrap {
+  --prp-icon-scale: 1.08;
+}
+
 .status-toggle-icon.is-active {
-  color: #10b981;
+  color: var(--prp-icon-active, #10b981);
 }
 
 .status-toggle-icon.is-inactive {
-  color: #8b8f98;
+  color: var(--prp-icon-muted, #8b8f98);
 }
 
 .status-toggle-icon__shape {

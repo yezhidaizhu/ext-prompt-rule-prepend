@@ -265,20 +265,20 @@ function handlePanelClick(event: MouseEvent) {
       </div>
     </header>
 
-    <div class="popup-divider border-b p-1">
-      <div class="grid h-8 grid-cols-2 overflow-hidden rounded-md bg-[var(--popup-segment-bg)] p-1">
+    <div class="popup-main-tabs-wrap">
+      <div class="popup-main-tabs">
         <button
           type="button"
-          class="rounded-md text-xs font-medium transition"
-          :class="activeTab === 'rules' ? 'popup-main-tab-active' : 'popup-secondary-text'"
+          class="popup-main-tab"
+          :class="activeTab === 'rules' ? 'popup-main-tab-active' : ''"
           @click="activeTab = 'rules'"
         >
           {{ t('popup.tabs.rules') }}
         </button>
         <button
           type="button"
-          class="rounded-md text-xs font-medium transition"
-          :class="activeTab === 'platforms' ? 'popup-main-tab-active' : 'popup-secondary-text'"
+          class="popup-main-tab"
+          :class="activeTab === 'platforms' ? 'popup-main-tab-active' : ''"
           @click="activeTab = 'platforms'"
         >
           {{ t('popup.tabs.platforms') }}
@@ -597,9 +597,48 @@ function handlePanelClick(event: MouseEvent) {
   cursor: pointer;
 }
 
+.popup-main-tabs-wrap {
+  border-bottom: 1px solid var(--popup-border-muted);
+  padding: 6px var(--popup-panel-x);
+}
+
+.popup-main-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  min-height: 30px;
+  overflow: hidden;
+  border: 1px solid var(--popup-tab-shell-border);
+  border-radius: 7px;
+  background: var(--popup-tab-strip-bg);
+  padding: 2px;
+}
+
+.popup-main-tab {
+  min-width: 0;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  padding: 0 10px;
+  color: var(--popup-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.popup-main-tab:hover {
+  background: var(--popup-tab-shell-bg);
+  color: var(--popup-text);
+}
+
 .popup-main-tab-active {
   background: var(--popup-tab-active-bg);
   color: var(--popup-tab-active-text);
+  font-weight: 600;
 }
 
 .popup-setting-block {
@@ -610,9 +649,8 @@ function handlePanelClick(event: MouseEvent) {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   overflow: hidden;
-  border: 1px solid var(--popup-segment-border);
   border-radius: 8px;
-  background: var(--popup-segment-bg);
+  background: var(--popup-tab-shell-bg);
   padding: 2px;
   gap: 2px;
 }
