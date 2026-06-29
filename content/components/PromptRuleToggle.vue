@@ -9,6 +9,7 @@ import {
 } from '@floating-ui/vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import { findPlatformRule, resolveActiveRule, createRuleForPlatform, updateRule } from '@/utils/promptConfig';
 import { usePromptConfigStore } from '@/stores/promptConfigStore';
 import StatusToggleIcon from './StatusToggleIcon.vue';
@@ -22,6 +23,7 @@ const props = defineProps<{
 
 const store = usePromptConfigStore();
 const { config } = storeToRefs(store);
+const { locale, t } = useI18n();
 
 const open = ref(false);
 const ruleFormOpen = ref(false);
@@ -56,14 +58,14 @@ const platformName = computed(() =>
 
 const createDialogHint = computed(() => {
   if (ruleFormMode.value === 'edit') {
-    return `修改后将应用于 ${platformName.value}`;
+    return t('content.createDialog.editAppliedHint', { platform: platformName.value });
   }
 
   if (enableAfterCreate.value) {
-    return '添加规则后将自动开启注入';
+    return t('content.createDialog.enableAfterCreateHint');
   }
 
-  return `创建后将关联到 ${platformName.value}`;
+  return t('content.createDialog.createHint', { platform: platformName.value });
 });
 
 const editingRule = computed(() =>
@@ -178,6 +180,14 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => config.value.settings.language,
+  (language) => {
+    locale.value = language;
+  },
+  { immediate: true },
+);
+
 function closePanel() {
   open.value = false;
   hoveredRuleId.value = '';
@@ -226,7 +236,7 @@ onBeforeUnmount(() => {
       type="button"
       class="prompt-rule-trigger"
       :aria-expanded="open"
-      aria-label="规则列表"
+      :aria-label="t('content.ruleList')"
       @click="togglePanel"
     >
       <StatusToggleIcon :active="iconActive" :rotation="iconRotation" />
@@ -244,13 +254,13 @@ onBeforeUnmount(() => {
 
           <div class="prompt-rule-popover-panel">
             <div class="prompt-rule-popover-header">
-              <p class="prompt-rule-popover-title">规则列表</p>
+              <p class="prompt-rule-popover-title">{{ t('content.ruleList') }}</p>
               <div class="prompt-rule-header-actions">
                 <button
                   type="button"
                   class="prompt-rule-icon-button"
-                  title="添加规则"
-                  aria-label="添加规则"
+                  :title="t('content.addRule')"
+                  :aria-label="t('content.addRule')"
                   @click.stop="openCreateDialog()"
                 >
                   <svg
@@ -274,8 +284,8 @@ onBeforeUnmount(() => {
                       ? 'prompt-rule-power-active'
                       : 'prompt-rule-power-inactive'
                   "
-                  :aria-label="enabled ? '已启用' : '已禁用'"
-                  :title="enabled ? '已启用' : '已禁用'"
+                  :aria-label="enabled ? t('content.enabled') : t('content.disabled')"
+                  :title="enabled ? t('content.enabled') : t('content.disabled')"
                   @click.stop="toggleEnabled"
                 >
                 <svg
@@ -303,13 +313,13 @@ onBeforeUnmount(() => {
               <div v-if="!hasPlatformRules" class="prompt-rule-empty">
                 <EmptyListIcon class="prompt-rule-empty-icon" />
                 <p class="prompt-rule-empty-title">
-                  {{ hasAnyRules ? '当前平台暂无可用规则' : '暂无规则' }}
+                  {{ hasAnyRules ? t('content.currentPlatformNoRules') : t('content.noRules') }}
                 </p>
                 <p class="prompt-rule-empty-hint">
                   {{
                     enabled
-                      ? '已开启注入，请先为当前平台添加一条规则'
-                      : '添加一条规则后即可选择并开启注入'
+                      ? t('content.enabledNeedsRule')
+                      : t('content.addRuleToEnable')
                   }}
                 </p>
                 <button
@@ -317,7 +327,7 @@ onBeforeUnmount(() => {
                   class="prompt-rule-empty-action"
                   @click.stop="openCreateDialog()"
                 >
-                  添加规则
+                  {{ t('content.addRule') }}
                 </button>
               </div>
 
@@ -326,7 +336,7 @@ onBeforeUnmount(() => {
                   v-if="enabled && !canInject"
                   class="prompt-rule-notice"
                 >
-                  已开启，但当前没有可注入的规则
+                  {{ t('content.enabledNoInjectableRule') }}
                 </p>
 
                 <div
@@ -349,8 +359,8 @@ onBeforeUnmount(() => {
                   <button
                     type="button"
                     class="prompt-rule-item-edit"
-                    title="编辑规则"
-                    aria-label="编辑规则"
+                    :title="t('content.editRule')"
+                    :aria-label="t('content.editRule')"
                     @click.stop="openEditDialog(rule.id)"
                   >
                     <svg
@@ -377,7 +387,7 @@ onBeforeUnmount(() => {
               v-if="previewRule"
               class="prompt-rule-preview-panel"
             >
-              <p class="prompt-rule-preview-title">规则内容</p>
+              <p class="prompt-rule-preview-title">{{ t('content.ruleContent') }}</p>
               <p class="prompt-rule-preview-content">{{ previewRule.content }}</p>
             </aside>
           </Transition>

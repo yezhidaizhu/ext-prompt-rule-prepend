@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import { usePromptConfigStore } from '@/stores/promptConfigStore';
 import PlatformEditorPanel from './PlatformEditorPanel.vue';
 import PlatformListPanel from './PlatformListPanel.vue';
@@ -21,6 +22,7 @@ const props = withDefaults(
 
 const store = usePromptConfigStore();
 const { config } = storeToRefs(store);
+const { locale, t } = useI18n();
 
 const activeTab = ref<'rules' | 'platforms'>('rules');
 const ruleEditorId = ref('');
@@ -41,11 +43,11 @@ const editingPlatform = computed(() => config.value.platforms.find((platform) =>
 const triggerVisibilityHint = computed(() => {
   switch (config.value.settings.triggerVisibility) {
     case 'always':
-      return '始终显示在输入框旁；已有对话默认关闭，需手动开启后再发';
+      return t('popup.settings.triggerHints.always');
     case 'newConversationOnly':
-      return '仅在没有消息时显示，适合首轮注入';
+      return t('popup.settings.triggerHints.newConversationOnly');
     default:
-      return '不在页面显示三角按钮';
+      return t('popup.settings.triggerHints.hidden');
   }
 });
 
@@ -64,7 +66,16 @@ watch(
 
 onMounted(async () => {
   await store.init();
+  locale.value = config.value.settings.language;
 });
+
+watch(
+  () => config.value.settings.language,
+  (language) => {
+    locale.value = language;
+  },
+  { immediate: true },
+);
 
 function getRuleDefaultLabels(ruleId: string) {
   return config.value.platforms.filter((platform) => platform.defaultRuleId === ruleId).map((platform) => platform.name);
@@ -222,15 +233,15 @@ function handlePanelClick(event: MouseEvent) {
     @click="handlePanelClick"
   >
     <header class="popup-header popup-divider border-b">
-      <h2 class="text-sm font-semibold leading-none">规则管理</h2>
+      <h2 class="text-sm font-semibold leading-none">{{ t('popup.title') }}</h2>
 
       <div class="flex items-center gap-1">
         <button
           v-if="activeTab === 'rules'"
           type="button"
           class="popup-icon-button popup-secondary-text"
-          title="新增规则"
-          aria-label="新增规则"
+          :title="t('popup.actions.newRule')"
+          :aria-label="t('popup.actions.newRule')"
           @click="openCreateRule"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
@@ -242,8 +253,8 @@ function handlePanelClick(event: MouseEvent) {
         <button
           type="button"
           class="popup-icon-button popup-secondary-text"
-          title="设置"
-          aria-label="设置"
+          :title="t('popup.actions.settings')"
+          :aria-label="t('popup.actions.settings')"
           @click="openSettings"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -262,7 +273,7 @@ function handlePanelClick(event: MouseEvent) {
           :class="activeTab === 'rules' ? 'popup-main-tab-active' : 'popup-secondary-text'"
           @click="activeTab = 'rules'"
         >
-          规则
+          {{ t('popup.tabs.rules') }}
         </button>
         <button
           type="button"
@@ -270,7 +281,7 @@ function handlePanelClick(event: MouseEvent) {
           :class="activeTab === 'platforms' ? 'popup-main-tab-active' : 'popup-secondary-text'"
           @click="activeTab = 'platforms'"
         >
-          平台
+          {{ t('popup.tabs.platforms') }}
         </button>
       </div>
     </div>
@@ -280,8 +291,8 @@ function handlePanelClick(event: MouseEvent) {
         <button
           type="button"
           class="popup-icon-button popup-back-button popup-secondary-text popup-hover-primary"
-          title="返回"
-          aria-label="返回"
+          :title="t('common.back')"
+          :aria-label="t('common.back')"
           @click="closeSettings"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -290,12 +301,12 @@ function handlePanelClick(event: MouseEvent) {
           </svg>
         </button>
 
-        <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">设置</h3>
+        <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">{{ t('popup.settings.title') }}</h3>
       </header>
 
       <div class="min-h-0 flex-1 overflow-y-auto popup-settings-scroll">
         <div class="popup-setting-block border-b popup-divider">
-          <p class="text-[13px] font-medium popup-primary-text">三角按钮</p>
+          <p class="text-[13px] font-medium popup-primary-text">{{ t('popup.settings.triggerButton') }}</p>
           <p class="popup-muted-label mt-1 text-xs leading-5">{{ triggerVisibilityHint }}</p>
           <div class="popup-trigger-segment mt-2.5">
             <button
@@ -304,7 +315,7 @@ function handlePanelClick(event: MouseEvent) {
               :class="config.settings.triggerVisibility === 'hidden' ? 'popup-trigger-segment-button-active' : ''"
               @click="setTriggerVisibility('hidden')"
             >
-              不显示
+              {{ t('popup.settings.triggerOptions.hidden') }}
             </button>
             <button
               type="button"
@@ -312,7 +323,7 @@ function handlePanelClick(event: MouseEvent) {
               :class="config.settings.triggerVisibility === 'newConversationOnly' ? 'popup-trigger-segment-button-active' : ''"
               @click="setTriggerVisibility('newConversationOnly')"
             >
-              仅新对话
+              {{ t('popup.settings.triggerOptions.newConversationOnly') }}
             </button>
             <button
               type="button"
@@ -320,20 +331,20 @@ function handlePanelClick(event: MouseEvent) {
               :class="config.settings.triggerVisibility === 'always' ? 'popup-trigger-segment-button-active' : ''"
               @click="setTriggerVisibility('always')"
             >
-              始终显示
+              {{ t('popup.settings.triggerOptions.always') }}
             </button>
           </div>
         </div>
 
         <div class="popup-setting-row border-b popup-divider">
-          <p class="text-[13px] font-medium popup-primary-text">主题色</p>
+          <p class="text-[13px] font-medium popup-primary-text">{{ t('popup.settings.theme') }}</p>
           <div class="popup-theme-segment">
             <button
               type="button"
               class="popup-theme-icon-button"
               :class="config.settings.uiTheme === 'auto' ? 'popup-theme-icon-button-active' : ''"
-              title="跟随系统"
-              aria-label="跟随系统"
+              :title="t('popup.settings.themeOptions.auto')"
+              :aria-label="t('popup.settings.themeOptions.auto')"
               @click="config.settings.uiTheme = 'auto'"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -346,8 +357,8 @@ function handlePanelClick(event: MouseEvent) {
               type="button"
               class="popup-theme-icon-button"
               :class="config.settings.uiTheme === 'black' ? 'popup-theme-icon-button-active' : ''"
-              title="深色"
-              aria-label="深色"
+              :title="t('popup.settings.themeOptions.black')"
+              :aria-label="t('popup.settings.themeOptions.black')"
               @click="config.settings.uiTheme = 'black'"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -358,8 +369,8 @@ function handlePanelClick(event: MouseEvent) {
               type="button"
               class="popup-theme-icon-button"
               :class="config.settings.uiTheme === 'white' ? 'popup-theme-icon-button-active' : ''"
-              title="浅色"
-              aria-label="浅色"
+              :title="t('popup.settings.themeOptions.white')"
+              :aria-label="t('popup.settings.themeOptions.white')"
               @click="config.settings.uiTheme = 'white'"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -377,17 +388,31 @@ function handlePanelClick(event: MouseEvent) {
           </div>
         </div>
 
+        <div class="popup-setting-row border-b popup-divider">
+          <p class="text-[13px] font-medium popup-primary-text">{{ t('popup.settings.language') }}</p>
+          <select
+            v-model="config.settings.language"
+            class="popup-language-select"
+            :aria-label="t('popup.settings.language')"
+          >
+            <option value="zh">{{ t('popup.settings.languages.zh') }}</option>
+            <option value="en">{{ t('popup.settings.languages.en') }}</option>
+            <option value="ja">{{ t('popup.settings.languages.ja') }}</option>
+            <option value="ko">{{ t('popup.settings.languages.ko') }}</option>
+          </select>
+        </div>
+
         <div class="popup-setting-block">
-          <p class="text-[13px] font-medium popup-primary-text">重置数据</p>
+          <p class="text-[13px] font-medium popup-primary-text">{{ t('popup.settings.resetData') }}</p>
           <p class="popup-muted-label mt-1 text-xs leading-5">
-            恢复内置 demo 规则、平台默认配置与设置，自定义内容将被清除。
+            {{ t('popup.settings.resetDescription') }}
           </p>
           <button
             type="button"
             class="popup-reset-button mt-3"
             @click="requestResetAll"
           >
-            重置全部数据
+            {{ t('popup.settings.resetAll') }}
           </button>
         </div>
       </div>
@@ -460,9 +485,9 @@ function handlePanelClick(event: MouseEvent) {
     >
       <section class="popup-surface popup-shadow-sm min-w-0 w-full max-w-[calc(100vw-2.5rem)] rounded-xl border">
         <div class="popup-section popup-divider min-w-0 border-b py-3">
-          <h3 class="popup-primary-text text-sm font-semibold">重置全部数据</h3>
+          <h3 class="popup-primary-text text-sm font-semibold">{{ t('popup.resetDialog.title') }}</h3>
           <p class="popup-muted-label mt-1 text-xs leading-5">
-            将恢复内置 demo 规则与平台默认配置，当前所有自定义规则与设置都会被清除，此操作不可撤销。
+            {{ t('popup.resetDialog.description') }}
           </p>
         </div>
 
@@ -472,14 +497,14 @@ function handlePanelClick(event: MouseEvent) {
             class="popup-secondary-text rounded-md px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--popup-hover)]"
             @click="resetConfirmOpen = false"
           >
-            取消
+            {{ t('common.cancel') }}
           </button>
           <button
             type="button"
             class="popup-action-danger rounded-md px-3 py-1.5 text-xs font-medium transition"
             @click="confirmResetAll"
           >
-            重置
+            {{ t('popup.resetDialog.confirm') }}
           </button>
         </div>
       </section>
@@ -492,12 +517,12 @@ function handlePanelClick(event: MouseEvent) {
     >
       <section class="popup-surface popup-shadow-sm min-w-0 w-full max-w-[calc(100vw-2.5rem)] rounded-xl border">
         <div class="popup-section popup-divider min-w-0 border-b py-3">
-          <h3 class="popup-primary-text text-sm font-semibold">删除规则</h3>
+          <h3 class="popup-primary-text text-sm font-semibold">{{ t('popup.deleteDialog.title') }}</h3>
           <p
             class="popup-muted-label mt-1 block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs"
-            :title="config.rules.find((rule) => rule.id === pendingDeleteRuleId)?.content || '未命名规则'"
+            :title="config.rules.find((rule) => rule.id === pendingDeleteRuleId)?.content || t('common.unnamedRule')"
           >
-            {{ config.rules.find((rule) => rule.id === pendingDeleteRuleId)?.content || '未命名规则' }}
+            {{ config.rules.find((rule) => rule.id === pendingDeleteRuleId)?.content || t('common.unnamedRule') }}
           </p>
         </div>
 
@@ -507,14 +532,14 @@ function handlePanelClick(event: MouseEvent) {
             class="popup-secondary-text rounded-md px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--popup-hover)]"
             @click="pendingDeleteRuleId = ''"
           >
-            取消
+            {{ t('common.cancel') }}
           </button>
           <button
             type="button"
             class="popup-action-danger rounded-md px-3 py-1.5 text-xs font-medium transition"
             @click="confirmDeleteRule"
           >
-            删除
+            {{ t('common.delete') }}
           </button>
         </div>
       </section>
@@ -556,6 +581,20 @@ function handlePanelClick(event: MouseEvent) {
 .popup-theme-icon-button-active {
   background: var(--popup-accent-soft);
   color: var(--popup-accent);
+}
+
+.popup-language-select {
+  min-width: 116px;
+  height: 28px;
+  border: 1px solid var(--popup-segment-border);
+  border-radius: 7px;
+  background: var(--popup-segment-bg);
+  padding: 0 26px 0 9px;
+  color: var(--popup-primary-text);
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
 }
 
 .popup-main-tab-active {

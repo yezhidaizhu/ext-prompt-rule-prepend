@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type { PopupPlatform } from '@/types/promptConfig';
 import EmptyListIcon from '@/shared/components/EmptyListIcon.vue';
 
@@ -10,12 +11,14 @@ const emit = defineEmits<{
   edit: [platformId: string];
   toggleEnabled: [platformId: string];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
   <div v-if="!platforms.length" class="popup-empty-state">
     <EmptyListIcon class="popup-muted-label" />
-    <p class="mt-2 text-[13px] font-medium popup-secondary-text">暂无平台</p>
+    <p class="mt-2 text-[13px] font-medium popup-secondary-text">{{ t('popup.platforms.empty') }}</p>
   </div>
 
   <div
@@ -31,8 +34,8 @@ const emit = defineEmits<{
           type="button"
           class="popup-icon-button"
           :class="platform.enabled ? 'popup-accent-text' : 'popup-danger-text'"
-          :title="platform.enabled ? '禁用平台' : '启用平台'"
-          :aria-label="platform.enabled ? '禁用平台' : '启用平台'"
+          :title="platform.enabled ? t('popup.platforms.disable') : t('popup.platforms.enable')"
+          :aria-label="platform.enabled ? t('popup.platforms.disable') : t('popup.platforms.enable')"
           @click="emit('toggleEnabled', platform.id)"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -45,8 +48,8 @@ const emit = defineEmits<{
         <button
           type="button"
           class="popup-icon-button popup-muted-label popup-hover-primary"
-          title="编辑平台"
-          aria-label="编辑平台"
+          :title="t('popup.platforms.edit')"
+          :aria-label="t('popup.platforms.edit')"
           @click="emit('edit', platform.id)"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">

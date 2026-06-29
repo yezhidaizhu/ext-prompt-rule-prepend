@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import '@/popup/styles/shared.css';
 
 interface RuleEditorPlatform {
@@ -25,6 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const { t } = useI18n();
 
 onMounted(async () => {
   await nextTick();
@@ -38,8 +40,8 @@ onMounted(async () => {
       <button
         type="button"
         class="popup-icon-button popup-back-button popup-secondary-text popup-hover-primary"
-        title="返回"
-        aria-label="返回"
+        :title="t('common.back')"
+        :aria-label="t('common.back')"
         @click="emit('back')"
       >
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -49,15 +51,15 @@ onMounted(async () => {
       </button>
 
       <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">
-        {{ mode === 'create' ? '新增规则' : '编辑规则' }}
+        {{ mode === 'create' ? t('popup.actions.newRule') : t('popup.rules.edit') }}
       </h3>
 
       <button
         v-if="mode === 'edit'"
         type="button"
         class="popup-icon-button popup-muted-label popup-hover-danger"
-        title="删除规则"
-        aria-label="删除规则"
+        :title="t('popup.rules.delete')"
+        :aria-label="t('popup.rules.delete')"
         @click="emit('delete')"
       >
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -76,7 +78,7 @@ onMounted(async () => {
         :disabled="!content.trim()"
         @click="emit('create')"
       >
-        创建
+        {{ t('common.create') }}
       </button>
     </header>
 
@@ -86,7 +88,7 @@ onMounted(async () => {
           ref="textareaRef"
           :value="content"
           class="popup-textarea min-h-40 w-full resize-none bg-transparent text-[13px] leading-5 popup-primary-text outline-none"
-          placeholder="输入规则内容"
+          :placeholder="t('popup.rules.placeholder')"
           @input="emit('update:content', ($event.target as HTMLTextAreaElement).value)"
           @keydown.meta.enter="mode === 'create' && emit('create')"
           @keydown.ctrl.enter="mode === 'create' && emit('create')"
@@ -94,7 +96,7 @@ onMounted(async () => {
       </div>
 
       <div class="popup-section border-b popup-divider py-3">
-        <p class="mb-2 text-[11px] font-medium popup-muted-label">适用平台</p>
+        <p class="mb-2 text-[11px] font-medium popup-muted-label">{{ t('popup.rules.applicablePlatformTitle') }}</p>
         <div class="flex flex-wrap gap-1.5">
           <button
             v-for="platform in platforms"
@@ -120,8 +122,8 @@ onMounted(async () => {
 
       <div class="popup-setting-row border-b popup-divider">
         <div>
-          <p class="text-[13px] font-medium popup-primary-text">启用规则</p>
-          <p class="mt-0.5 text-xs popup-muted-label">关闭后发送时不注入</p>
+          <p class="text-[13px] font-medium popup-primary-text">{{ t('popup.rules.enableRule') }}</p>
+          <p class="mt-0.5 text-xs popup-muted-label">{{ t('popup.rules.disabledInjectionHint') }}</p>
         </div>
         <button
           type="button"

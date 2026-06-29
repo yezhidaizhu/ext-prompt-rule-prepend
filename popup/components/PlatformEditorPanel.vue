@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { PopupPlatform, PopupRule } from '@/types/promptConfig';
 
 const props = defineProps<{
@@ -12,12 +13,13 @@ const emit = defineEmits<{
 }>();
 
 const defaultSelectorOpen = ref(false);
+const { t } = useI18n();
 
 const currentDefaultRule = computed(() => props.rules.find((rule) => rule.id === props.platform.defaultRuleId));
 const defaultSelectorLabel = computed(() => {
-  if (!props.rules.length) return '暂无规则';
+  if (!props.rules.length) return t('popup.platforms.noRules');
 
-  return currentDefaultRule.value?.content || '选择默认规则';
+  return currentDefaultRule.value?.content || t('popup.platforms.selectDefaultRule');
 });
 
 function setDefaultRule(ruleId: string) {
@@ -45,8 +47,8 @@ function handlePanelClick(event: MouseEvent) {
       <button
         type="button"
         class="popup-icon-button popup-back-button popup-secondary-text popup-hover-primary"
-        title="返回"
-        aria-label="返回"
+        :title="t('common.back')"
+        :aria-label="t('common.back')"
         @click="emit('back')"
       >
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -55,22 +57,22 @@ function handlePanelClick(event: MouseEvent) {
         </svg>
       </button>
 
-      <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">编辑平台</h3>
+      <h3 class="min-w-0 flex-1 px-2 text-sm font-semibold leading-none">{{ t('popup.platforms.edit') }}</h3>
     </header>
 
     <div class="flex-1 overflow-y-auto popup-settings-scroll">
       <div class="popup-section py-3">
-        <div class="popup-editor-group-title">基础</div>
+        <div class="popup-editor-group-title">{{ t('popup.platforms.basic') }}</div>
         <label class="popup-field-row">
-          <span class="popup-field-label">名称</span>
+          <span class="popup-field-label">{{ t('popup.platforms.name') }}</span>
           <input v-model="platform.name" class="popup-input" />
         </label>
         <label class="popup-field-row">
-          <span class="popup-field-label">匹配 URL</span>
+          <span class="popup-field-label">{{ t('popup.platforms.matchUrl') }}</span>
           <input v-model="platform.matchUrl" class="popup-input" />
         </label>
         <div class="popup-field-row popup-field-row-plain">
-          <span class="popup-field-label">默认规则</span>
+          <span class="popup-field-label">{{ t('popup.platforms.defaultRule') }}</span>
           <div class="relative min-w-0" data-platform-default-selector="true">
             <button
               type="button"
@@ -92,10 +94,10 @@ function handlePanelClick(event: MouseEvent) {
                 type="button"
                 class="popup-select-option"
                 :class="platform.defaultRuleId === rule.id ? 'popup-select-option-active' : ''"
-                :title="rule.content || '未命名规则'"
+                :title="rule.content || t('common.unnamedRule')"
                 @click="setDefaultRule(rule.id)"
               >
-                <span class="truncate">{{ rule.content || '未命名规则' }}</span>
+                <span class="truncate">{{ rule.content || t('common.unnamedRule') }}</span>
               </button>
             </div>
           </div>
@@ -104,8 +106,8 @@ function handlePanelClick(event: MouseEvent) {
 
       <div class="popup-setting-row border-t border-b popup-divider">
         <div>
-          <p class="text-[13px] font-medium popup-primary-text">启用平台</p>
-          <p class="mt-0.5 text-xs popup-muted-label">关闭后不匹配该平台</p>
+          <p class="text-[13px] font-medium popup-primary-text">{{ t('popup.platforms.enablePlatform') }}</p>
+          <p class="mt-0.5 text-xs popup-muted-label">{{ t('popup.platforms.disabledMatchHint') }}</p>
         </div>
         <button
           type="button"
@@ -119,7 +121,7 @@ function handlePanelClick(event: MouseEvent) {
       </div>
 
       <div class="popup-section py-3">
-        <div class="popup-editor-group-title">高级</div>
+        <div class="popup-editor-group-title">{{ t('popup.platforms.advanced') }}</div>
         <label class="popup-field-row">
           <span class="popup-field-label">Textarea</span>
           <input v-model="platform.textareaSelector" class="popup-input" />
@@ -129,15 +131,15 @@ function handlePanelClick(event: MouseEvent) {
           <input v-model="platform.submitSelector" class="popup-input" />
         </label>
         <label class="popup-field-row">
-          <span class="popup-field-label">对话列表</span>
+          <span class="popup-field-label">{{ t('popup.platforms.conversationList') }}</span>
           <input v-model="platform.conversationContainerSelector" class="popup-input" />
         </label>
         <label class="popup-field-row">
-          <span class="popup-field-label">对话项</span>
+          <span class="popup-field-label">{{ t('popup.platforms.conversationItem') }}</span>
           <input v-model="platform.conversationItemSelector" class="popup-input" />
         </label>
         <div class="popup-field-row popup-field-row-plain">
-          <span class="popup-field-label">触发位置</span>
+          <span class="popup-field-label">{{ t('popup.platforms.triggerPosition') }}</span>
           <div class="grid min-w-0 grid-cols-2 gap-2">
             <label class="popup-offset-input">
               <span>X</span>

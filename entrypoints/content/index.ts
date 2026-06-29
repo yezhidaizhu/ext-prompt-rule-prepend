@@ -2,6 +2,7 @@ import type { App as VueApp } from 'vue';
 import { createApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { platformPresets } from '@/config/platforms';
+import { createAppI18n } from '@/i18n';
 import { getCurrentPlatformPreset } from '@/platforms';
 import { usePromptConfigStore } from '@/stores/promptConfigStore';
 import { ensureDialogPortal } from '@/utils/content/dialogPortal';
@@ -27,6 +28,7 @@ export default defineContentScript({
     (globalThis as Record<string, unknown>)[mountFlag] = true;
 
     const pinia = createPinia();
+    const i18n = createAppI18n();
     setActivePinia(pinia);
     await usePromptConfigStore().init();
     ensureDialogPortal();
@@ -52,6 +54,7 @@ export default defineContentScript({
 
         app = createApp(ContentApp, { platformId: preset.id });
         app.use(pinia);
+        app.use(i18n);
         app.mount(container);
         return app;
       },

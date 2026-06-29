@@ -13,7 +13,7 @@ export interface DemoPromptDefinition extends PopupRule {
 export const demoPromptDefinitions: DemoPromptDefinition[] = [
   {
     id: 'deepseek-no-fluff',
-    content: 'Be concise and direct: do not restate the question, do not open with filler like "Sure" or "Of course", and skip unrelated setup or closing summaries. Use one sentence when one sentence is enough; use bullets only when they help.',
+    content: 'Answer concisely. No extra words, no expansion. If no process is requested, give only the answer.',
     enabled: true,
     platformIds: demoPlatformIds,
     defaultForPlatform: 'deepseek',

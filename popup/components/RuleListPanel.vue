@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { PopupRule } from '@/types/promptConfig';
 import EmptyListIcon from '@/shared/components/EmptyListIcon.vue';
 import { usePromptClipboard } from '@/popup/composables/usePromptClipboard';
@@ -18,6 +19,7 @@ const emit = defineEmits<{
 
 const copiedRuleId = ref('');
 const { copyText } = usePromptClipboard();
+const { t } = useI18n();
 
 function markCopied(ruleId: string) {
   copiedRuleId.value = ruleId;
@@ -41,13 +43,13 @@ async function copyRule(rule: PopupRule) {
 <template>
   <div v-if="!rules.length" class="popup-empty-state">
     <EmptyListIcon class="popup-muted-label" />
-    <p class="mt-2 text-[13px] font-medium popup-secondary-text">暂无规则</p>
+    <p class="mt-2 text-[13px] font-medium popup-secondary-text">{{ t('popup.rules.empty') }}</p>
     <button
       type="button"
       class="popup-action-primary mt-3 rounded-lg px-3 py-1.5 text-xs font-medium transition"
       @click="emit('create')"
     >
-      新增规则
+      {{ t('popup.actions.newRule') }}
     </button>
   </div>
 
@@ -61,10 +63,10 @@ async function copyRule(rule: PopupRule) {
         type="button"
         data-popup-rule-view-trigger="true"
         class="popup-hover-primary min-w-0 flex-1 truncate text-left text-[13px] popup-primary-text transition"
-        title="查看完整规则"
+        :title="t('popup.rules.viewFull')"
         @click="emit('view', rule.id)"
       >
-        {{ rule.content || '未命名规则' }}
+        {{ rule.content || t('common.unnamedRule') }}
       </button>
 
       <div class="flex shrink-0 items-center gap-1">
@@ -72,8 +74,8 @@ async function copyRule(rule: PopupRule) {
           type="button"
           class="popup-icon-button"
           :class="rule.enabled ? 'popup-accent-text' : 'popup-danger-text'"
-          :title="rule.enabled ? '禁用规则' : '启用规则'"
-          :aria-label="rule.enabled ? '禁用规则' : '启用规则'"
+          :title="rule.enabled ? t('popup.rules.disable') : t('popup.rules.enable')"
+          :aria-label="rule.enabled ? t('popup.rules.disable') : t('popup.rules.enable')"
           @click="emit('toggleEnabled', rule.id)"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -87,8 +89,8 @@ async function copyRule(rule: PopupRule) {
           type="button"
           class="popup-icon-button popup-muted-label popup-hover-primary"
           :class="copiedRuleId === rule.id ? 'popup-accent-text' : ''"
-          :title="copiedRuleId === rule.id ? '已复制' : '复制规则'"
-          :aria-label="copiedRuleId === rule.id ? '已复制' : '复制规则'"
+          :title="copiedRuleId === rule.id ? t('common.copied') : t('popup.rules.copy')"
+          :aria-label="copiedRuleId === rule.id ? t('common.copied') : t('popup.rules.copy')"
           @click.stop="copyRule(rule)"
         >
           <svg v-if="copiedRuleId !== rule.id" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -103,8 +105,8 @@ async function copyRule(rule: PopupRule) {
         <button
           type="button"
           class="popup-icon-button popup-muted-label popup-hover-danger"
-          title="删除规则"
-          aria-label="删除规则"
+          :title="t('popup.rules.delete')"
+          :aria-label="t('popup.rules.delete')"
           @click="emit('delete', rule.id)"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -119,8 +121,8 @@ async function copyRule(rule: PopupRule) {
         <button
           type="button"
           class="popup-icon-button popup-muted-label popup-hover-primary"
-          title="编辑规则"
-          aria-label="编辑规则"
+          :title="t('popup.rules.edit')"
+          :aria-label="t('popup.rules.edit')"
           @click="emit('edit', rule.id)"
         >
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">

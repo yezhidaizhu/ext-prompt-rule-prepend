@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { PopupPlatform, PopupRule } from '@/types/promptConfig';
 import { usePromptClipboard } from '@/popup/composables/usePromptClipboard';
 
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 
 const copied = ref(false);
 const { copyText } = usePromptClipboard();
+const { t } = useI18n();
 
 const matchedPlatforms = computed(() => props.platforms
     .filter((platform) => props.rule.platformIds.includes(platform.id))
@@ -41,15 +43,15 @@ async function copyRule() {
     @click.stop
   >
       <header class="popup-header popup-header-sm popup-divider border-b">
-        <h3 class="text-sm font-semibold leading-none">规则内容</h3>
+        <h3 class="text-sm font-semibold leading-none">{{ t('popup.rules.content') }}</h3>
 
         <div class="flex items-center gap-1">
           <button
             type="button"
             class="popup-icon-button popup-hover-primary"
             :class="copied ? 'popup-accent-text' : 'popup-secondary-text'"
-            :title="copied ? '已复制' : '复制'"
-            :aria-label="copied ? '已复制' : '复制'"
+            :title="copied ? t('common.copied') : t('common.copy')"
+            :aria-label="copied ? t('common.copied') : t('common.copy')"
             @click="copyRule"
           >
             <svg v-if="!copied" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
@@ -64,8 +66,8 @@ async function copyRule() {
           <button
             type="button"
             class="popup-icon-button popup-secondary-text popup-hover-primary"
-            title="关闭"
-            aria-label="关闭"
+            :title="t('common.close')"
+            :aria-label="t('common.close')"
             @click="emit('close')"
           >
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
@@ -78,20 +80,20 @@ async function copyRule() {
 
       <div class="popup-section min-h-0 flex-1 overflow-y-auto py-3 popup-settings-scroll">
         <p class="whitespace-pre-wrap text-[13px] leading-6 popup-primary-text">
-          {{ rule.content || '未命名规则' }}
+          {{ rule.content || t('common.unnamedRule') }}
         </p>
       </div>
 
       <div class="popup-section popup-divider shrink-0 border-t py-2.5">
           <div class="flex items-center justify-between gap-3">
-            <span class="popup-muted-label shrink-0 text-[11px]">状态</span>
+            <span class="popup-muted-label shrink-0 text-[11px]">{{ t('popup.rules.status') }}</span>
             <span class="truncate text-right text-xs" :class="rule.enabled ? 'popup-accent-text' : 'popup-danger-text'">
-              {{ rule.enabled ? '已启用' : '已禁用' }}
+              {{ rule.enabled ? t('popup.rules.enabled') : t('popup.rules.disabled') }}
             </span>
           </div>
 
           <div class="mt-3">
-            <p class="popup-muted-label mb-2 text-[11px]">适用平台</p>
+            <p class="popup-muted-label mb-2 text-[11px]">{{ t('popup.rules.applicablePlatforms') }}</p>
             <div class="flex min-w-0 flex-wrap gap-1">
               <span
                 v-for="platform in matchedPlatforms"
@@ -100,12 +102,12 @@ async function copyRule() {
               >
                 {{ platform.name }}
               </span>
-              <span v-if="!matchedPlatforms.length" class="popup-muted-label text-xs">未关联平台</span>
+              <span v-if="!matchedPlatforms.length" class="popup-muted-label text-xs">{{ t('popup.rules.noLinkedPlatform') }}</span>
             </div>
           </div>
 
           <div class="mt-3">
-            <p class="popup-muted-label mb-2 text-[11px]">默认注入平台</p>
+            <p class="popup-muted-label mb-2 text-[11px]">{{ t('popup.rules.defaultPlatforms') }}</p>
             <div class="flex min-w-0 flex-wrap gap-1">
               <span
                 v-for="label in defaultLabels"
@@ -114,7 +116,7 @@ async function copyRule() {
               >
                 {{ label }}
               </span>
-              <span v-if="!defaultLabels.length" class="popup-muted-label text-xs">未设为平台默认</span>
+              <span v-if="!defaultLabels.length" class="popup-muted-label text-xs">{{ t('popup.rules.noDefaultPlatform') }}</span>
             </div>
           </div>
       </div>

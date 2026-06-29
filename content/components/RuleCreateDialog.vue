@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { resolveDialogPortalTarget, setCreateDialogOpen } from '@/utils/content/dialogPortal';
 
 const props = withDefaults(defineProps<{
@@ -24,20 +25,21 @@ const content = ref('');
 const enabled = ref(true);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const portalTarget = resolveDialogPortalTarget();
+const { t } = useI18n();
 
 const isEditMode = computed(() => props.mode === 'edit');
-const dialogTitle = computed(() => (isEditMode.value ? '编辑规则' : '添加规则'));
-const submitLabel = computed(() => (isEditMode.value ? '保存' : '创建'));
-const switchLabel = computed(() => (isEditMode.value ? '启用规则' : '创建后启用'));
+const dialogTitle = computed(() => (isEditMode.value ? t('content.createDialog.editTitle') : t('content.createDialog.createTitle')));
+const submitLabel = computed(() => (isEditMode.value ? t('content.createDialog.save') : t('content.createDialog.create')));
+const switchLabel = computed(() => (isEditMode.value ? t('content.createDialog.enableRule') : t('content.createDialog.enableAfterCreate')));
 const switchDesc = computed(() =>
-  isEditMode.value ? '关闭后保留规则，但不参与注入' : '关闭后仅保存，不参与注入');
+  isEditMode.value ? t('content.createDialog.editDisabledHint') : t('content.createDialog.createDisabledHint'));
 
 const canSubmit = computed(() => content.value.trim().length > 0);
 const dialogHint = computed(() => {
   if (props.hint.trim()) return props.hint.trim();
   return isEditMode.value
-    ? `编辑 ${props.platformName} 的规则`
-    : `创建后将关联到 ${props.platformName}`;
+    ? t('content.createDialog.editHint', { platform: props.platformName })
+    : t('content.createDialog.createHint', { platform: props.platformName });
 });
 
 function syncFromProps() {
@@ -114,7 +116,7 @@ function handleKeydown(event: KeyboardEvent) {
             ref="textareaRef"
             v-model="content"
             class="prompt-rule-create-textarea"
-            placeholder="输入规则内容"
+            :placeholder="t('content.createDialog.placeholder')"
             rows="6"
             @keydown="handleKeydown"
           />
@@ -142,7 +144,7 @@ function handleKeydown(event: KeyboardEvent) {
             class="prompt-rule-create-button prompt-rule-create-button-muted"
             @click="emit('close')"
           >
-            取消
+            {{ t('common.cancel') }}
           </button>
           <button
             type="button"

@@ -99,7 +99,7 @@ function getConversationMessages(root: ParentNode, selectors: RulesCollapseSelec
   )].filter((item): item is HTMLElement => item instanceof HTMLElement);
 }
 
-function foldTextNode(node: Text) {
+function foldTextNode(node: Text, summaryLabel: string) {
   const text = node.nodeValue || '';
   const match = text.match(rulesPattern);
   if (!match) return false;
@@ -109,7 +109,7 @@ function foldTextNode(node: Text) {
   wrapper.className = foldedClass;
 
   const summary = document.createElement('summary');
-  summary.textContent = '规则';
+  summary.textContent = summaryLabel;
 
   const body = document.createElement('div');
   body.className = `${foldedClass}__body`;
@@ -132,6 +132,7 @@ function foldTextNode(node: Text) {
 export function foldVisibleRules(
   selectorSource: RulesCollapseSelectorSource,
   root: ParentNode = document.body,
+  summaryLabel = '规则',
 ) {
   ensureFoldStyles();
 
@@ -143,21 +144,30 @@ export function foldVisibleRules(
       const parent = node.parentElement;
       if (!parent || parent.closest(`[${foldedMarker}]`)) continue;
 
-      foldTextNode(node);
+      foldTextNode(node, summaryLabel);
     }
   }
 }
 
-export function observeRulesCollapse(selectorSource: RulesCollapseSelectorSource) {
-  foldVisibleRules(selectorSource);
+export function updateFoldedRuleSummaryLabels(summaryLabel: string) {
+  document.querySelectorAll(`.${foldedClass} > summary`).forEach((summary) => {
+    summary.textContent = summaryLabel;
+  });
+}
+
+export function observeRulesCollapse(
+  selectorSource: RulesCollapseSelectorSource,
+  getSummaryLabel: () => string = () => '规则',
+) {
+  foldVisibleRules(selectorSource, document.body, getSummaryLabel());
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node instanceof HTMLElement) {
-          foldVisibleRules(selectorSource, node);
+          foldVisibleRules(selectorSource, node, getSummaryLabel());
         } else if (node instanceof Text) {
-          foldVisibleRules(selectorSource, node.parentElement || document.body);
+          foldVisibleRules(selectorSource, node.parentElement || document.body, getSummaryLabel());
         }
       }
     }

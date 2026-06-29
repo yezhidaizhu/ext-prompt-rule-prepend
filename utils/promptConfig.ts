@@ -1,4 +1,4 @@
-import type { PopupPlatform, PopupRule, PopupTheme, TriggerVisibility } from '@/types/promptConfig';
+import type { PopupLanguage, PopupPlatform, PopupRule, PopupTheme, TriggerVisibility } from '@/types/promptConfig';
 import {
   createDemoPromptRules,
   getDemoDefaultRuleId,
@@ -15,6 +15,7 @@ export interface PromptConfig {
   rules: PopupRule[];
   platforms: PopupPlatform[];
   settings: {
+    language: PopupLanguage;
     triggerVisibility: TriggerVisibility;
     uiTheme: PopupTheme;
   };
@@ -78,6 +79,7 @@ export function createDefaultPromptConfig(): PromptConfig {
     rules,
     platforms,
     settings: {
+      language: 'zh',
       triggerVisibility: 'newConversationOnly',
       uiTheme: 'auto',
     },
@@ -200,17 +202,25 @@ function mergeSettings(
 ): PromptConfig['settings'] {
   const raw = storedSettings || {};
   const uiTheme = raw.uiTheme ?? defaults.uiTheme;
+  const language = raw.language === 'en'
+    || raw.language === 'ja'
+    || raw.language === 'ko'
+    || raw.language === 'zh'
+    ? raw.language
+    : defaults.language;
 
   if (raw.triggerVisibility === 'hidden'
     || raw.triggerVisibility === 'newConversationOnly'
     || raw.triggerVisibility === 'always') {
     return {
+      language,
       uiTheme,
       triggerVisibility: raw.triggerVisibility,
     };
   }
 
   return {
+    language,
     uiTheme,
     triggerVisibility: raw.showTriggerButton === false ? 'hidden' : 'newConversationOnly',
   };
