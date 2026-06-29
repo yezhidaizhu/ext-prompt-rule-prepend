@@ -1,5 +1,6 @@
 const foldedClass = 'prompt-rule-prepend-folded-rules';
 const foldedMarker = 'data-prompt-rule-prepend-folded';
+const foldedParentMarker = 'data-prompt-rule-prepend-fold-parent';
 const foldedThemeAttribute = 'data-prompt-rule-theme';
 
 const rulesPattern = /<RULES>\s*--------\s*([\s\S]*?)\s*--------\s*<\/RULES>/;
@@ -33,6 +34,7 @@ function ensureFoldStyles() {
       display: block;
       max-width: 100%;
       width: fit-content;
+      flex-basis: 100%;
       cursor: pointer;
       border: 1px solid var(--prp-fold-border);
       border-radius: 8px;
@@ -112,6 +114,10 @@ function ensureFoldStyles() {
       font-size: 13px;
       line-height: 1.45;
       overflow-wrap: anywhere;
+    }
+
+    [${foldedParentMarker}="true"] {
+      flex-wrap: wrap;
     }
   `;
   document.documentElement.append(style);
@@ -209,7 +215,9 @@ export function foldVisibleRules(
       const parent = node.parentElement;
       if (!parent || parent.closest(`[${foldedMarker}]`)) continue;
 
-      foldTextNode(node, summaryLabel, theme);
+      if (foldTextNode(node, summaryLabel, theme)) {
+        parent.setAttribute(foldedParentMarker, 'true');
+      }
     }
   }
 }

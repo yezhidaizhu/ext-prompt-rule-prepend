@@ -17,6 +17,44 @@ export function readInputValue(input: PromptInputElement) {
   return input.innerText || input.textContent || '';
 }
 
+function selectEditableContents(input: HTMLElement) {
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(input);
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+}
+
+function createTextDataTransfer(value: string) {
+  try {
+    const dataTransfer = new DataTransfer();
+    dataTransfer.setData('text/plain', value);
+    return dataTransfer;
+  } catch {
+    return null;
+  }
+}
+
+function writeRichTextEditorValue(input: HTMLElement, value: string) {
+  input.focus();
+  selectEditableContents(input);
+
+  const clipboardData = createTextDataTransfer(value);
+  if (clipboardData) {
+    const pasted = input.dispatchEvent(new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true,
+      clipboardData,
+    }));
+
+    if (!pasted || readInputValue(input).trim() === value.trim()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function writeInputValue(input: PromptInputElement, value: string) {
   input.focus();
 
@@ -27,11 +65,12 @@ export function writeInputValue(input: PromptInputElement, value: string) {
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
     setter?.call(input, value);
   } else {
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(input);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
+    if (input.getAttribute('data-lexical-editor') === 'true' && writeRichTextEditorValue(input, value)) {
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    selectEditableContents(input);
 
     const inserted = document.execCommand('insertText', false, value);
     if (!inserted) {

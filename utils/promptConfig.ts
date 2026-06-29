@@ -245,6 +245,31 @@ function mergeSettings(
   };
 }
 
+function mergePlatformConfig(
+  platform: PopupPlatform,
+  defaultPlatform: PopupPlatform | undefined,
+): PopupPlatform {
+  const merged = {
+    ...defaultPlatform,
+    ...platform,
+    conversationContainerSelector: platform.conversationContainerSelector
+      || defaultPlatform?.conversationContainerSelector
+      || '',
+    conversationItemSelector: platform.conversationItemSelector
+      || defaultPlatform?.conversationItemSelector
+      || '',
+  };
+
+  if (platform.id === 'kimi' && defaultPlatform) {
+    const staleKimiItemSelector = '.chat-message, [data-message-id]';
+    if (platform.conversationItemSelector === staleKimiItemSelector) {
+      merged.conversationItemSelector = defaultPlatform.conversationItemSelector;
+    }
+  }
+
+  return merged;
+}
+
 function mergeStoredConfig(stored: PromptConfig | null): PromptConfig {
   if (!stored) return createDefaultPromptConfig();
 
@@ -256,16 +281,7 @@ function mergeStoredConfig(stored: PromptConfig | null): PromptConfig {
     ...storedPlatforms.map((platform) => {
       const defaultPlatform = defaults.platforms.find((item) => item.id === platform.id);
 
-      return {
-        ...defaultPlatform,
-        ...platform,
-        conversationContainerSelector: platform.conversationContainerSelector
-          || defaultPlatform?.conversationContainerSelector
-          || '',
-        conversationItemSelector: platform.conversationItemSelector
-          || defaultPlatform?.conversationItemSelector
-          || '',
-      };
+      return mergePlatformConfig(platform, defaultPlatform);
     }),
     ...defaults.platforms.filter((platform) =>
       !storedPlatforms.some((storedPlatform) => storedPlatform.id === platform.id)),

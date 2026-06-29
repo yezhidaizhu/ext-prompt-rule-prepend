@@ -27,7 +27,7 @@ export const chatgptConversationItemSelector =
 export const kimiInputSelector = '.chat-input-editor[contenteditable="true"], .chat-input-editor';
 
 /** Kimi 对话消息 */
-export const kimiConversationItemSelector = '.chat-message, [data-message-id]';
+export const kimiConversationItemSelector = '.chat-content-item, .segment';
 
 export const platformPresets: PlatformPreset[] = [
   {
