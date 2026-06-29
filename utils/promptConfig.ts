@@ -4,7 +4,13 @@ import {
   getDemoDefaultRuleId,
   demoDefaultSelectedRuleId,
 } from '@/config/demoPrompts';
-import { chatgptConversationItemSelector, chatgptInputSelector, deepseekInputSelector } from '@/config/platforms';
+import {
+  chatgptConversationItemSelector,
+  chatgptInputSelector,
+  deepseekInputSelector,
+  kimiConversationItemSelector,
+  kimiInputSelector,
+} from '@/config/platforms';
 
 export const promptConfigStorageKey = 'prompt-rule-prepend:config';
 export const promptConfigUpdatedEvent = 'prompt-rule-prepend:config-updated';
@@ -53,6 +59,19 @@ export function createDefaultPromptConfig(): PromptConfig {
       conversationContainerSelector: 'main',
       conversationItemSelector: chatgptConversationItemSelector,
       offsetX: -84,
+      offsetY: 0,
+    },
+    {
+      id: 'kimi',
+      name: 'Kimi',
+      enabled: true,
+      defaultRuleId: getDemoDefaultRuleId('deepseek'),
+      matchUrl: '*://www.kimi.com/*',
+      textareaSelector: kimiInputSelector,
+      submitSelector: '.send-button-container:not(.disabled)',
+      conversationContainerSelector: '#chat-container',
+      conversationItemSelector: kimiConversationItemSelector,
+      offsetX: -46,
       offsetY: 0,
     },
     // Claude 暂不支持，后续启用时在 config/demoPrompts.ts 一并取消注释：
@@ -230,8 +249,11 @@ function mergeStoredConfig(stored: PromptConfig | null): PromptConfig {
   if (!stored) return createDefaultPromptConfig();
 
   const defaults = createDefaultPromptConfig();
-  const platforms = Array.isArray(stored.platforms)
-    ? stored.platforms.map((platform) => {
+  const storedPlatforms = Array.isArray(stored.platforms)
+    ? stored.platforms
+    : defaults.platforms;
+  const platforms = [
+    ...storedPlatforms.map((platform) => {
       const defaultPlatform = defaults.platforms.find((item) => item.id === platform.id);
 
       return {
@@ -244,13 +266,22 @@ function mergeStoredConfig(stored: PromptConfig | null): PromptConfig {
           || defaultPlatform?.conversationItemSelector
           || '',
       };
-    })
-    : defaults.platforms;
+    }),
+    ...defaults.platforms.filter((platform) =>
+      !storedPlatforms.some((storedPlatform) => storedPlatform.id === platform.id)),
+  ];
+
+  const storedRules = Array.isArray(stored.rules) ? stored.rules : defaults.rules;
+  const rules = [
+    ...storedRules,
+    ...defaults.rules.filter((rule) =>
+      !storedRules.some((storedRule) => storedRule.id === rule.id)),
+  ];
 
   return {
     ...defaults,
     ...stored,
-    rules: Array.isArray(stored.rules) ? stored.rules : defaults.rules,
+    rules,
     platforms,
     settings: mergeSettings(
       stored.settings as Partial<PromptConfig['settings']> & { showTriggerButton?: boolean } | undefined,

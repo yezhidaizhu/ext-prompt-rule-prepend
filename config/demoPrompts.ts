@@ -1,6 +1,6 @@
 import type { PopupRule } from '@/types/promptConfig';
 
-const demoPlatformIds = ['deepseek', 'chatgpt'];
+const demoPlatformIds = ['deepseek', 'chatgpt', 'kimi'];
 
 export interface DemoPromptDefinition extends PopupRule {
   /** 初始化时作为对应平台的 defaultRuleId */
@@ -25,7 +25,6 @@ export const demoPromptDefinitions: DemoPromptDefinition[] = [
     platformIds: demoPlatformIds,
     defaultForPlatform: 'chatgpt',
   },
-
   // Claude 暂不支持，后续启用时可取消注释：
   // {
   //   id: 'claude-prose-concise',

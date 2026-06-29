@@ -12,7 +12,11 @@ export default defineConfig({
       default_title: '__MSG_extName__',
     },
     permissions: ['storage', 'tabs', 'scripting'],
-    host_permissions: ['*://chat.deepseek.com/*', '*://chatgpt.com/*'],
+    host_permissions: [
+      '*://chat.deepseek.com/*',
+      '*://chatgpt.com/*',
+      '*://www.kimi.com/*',
+    ],
   },
   vite: () => ({
     plugins: [tailwindcss()],

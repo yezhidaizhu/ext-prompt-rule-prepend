@@ -22,8 +22,10 @@ The extension is built with WXT, Vue 3, Pinia, Tailwind CSS 4, and Floating UI.
 The content script currently targets:
 
 - DeepSeek: `*://chat.deepseek.com/*`
+- ChatGPT: `*://chatgpt.com/*`
+- Kimi: `*://www.kimi.com/*`
 
-The popup data model also contains configurable entries for ChatGPT and Claude, but the shipped content-script preset and host permission currently only include DeepSeek. To enable more platforms, update:
+The popup data model also contains configurable entries for Claude, but the shipped content-script preset and host permission currently do not include Claude. To enable more platforms, update:
 
 - `config/platforms.ts`
 - `wxt.config.ts`

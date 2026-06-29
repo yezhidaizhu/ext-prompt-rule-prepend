@@ -23,6 +23,12 @@ export const chatgptInputSelector = '#prompt-textarea';
 export const chatgptConversationItemSelector =
   '[data-message-author-role="user"], [data-message-author-role="assistant"]';
 
+/** Kimi 主输入框 */
+export const kimiInputSelector = '.chat-input-editor[contenteditable="true"], .chat-input-editor';
+
+/** Kimi 对话消息 */
+export const kimiConversationItemSelector = '.chat-message, [data-message-id]';
+
 export const platformPresets: PlatformPreset[] = [
   {
     id: 'deepseek',
@@ -45,6 +51,18 @@ export const platformPresets: PlatformPreset[] = [
     conversationContainerSelector: 'main',
     conversationItemSelector: chatgptConversationItemSelector,
     triggerOffsetX: -84,
+    triggerOffsetY: 0,
+    insertStrategy: 'append-before-send',
+  },
+  {
+    id: 'kimi',
+    name: 'Kimi',
+    matches: ['*://www.kimi.com/*'],
+    inputSelector: kimiInputSelector,
+    submitSelector: '.send-button-container:not(.disabled)',
+    conversationContainerSelector: '#chat-container',
+    conversationItemSelector: kimiConversationItemSelector,
+    triggerOffsetX: -46,
     triggerOffsetY: 0,
     insertStrategy: 'append-before-send',
   },
