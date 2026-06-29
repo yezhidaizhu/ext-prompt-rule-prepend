@@ -33,6 +33,40 @@ function cloneConfig(config: PromptConfig): PromptConfig {
 
 export { cloneConfig };
 
+function normalizePopupLanguage(language: string | undefined | null): PopupLanguage | null {
+  const normalized = language?.trim().toLowerCase().replace('_', '-');
+  if (!normalized) return null;
+
+  const primary = normalized.split('-')[0];
+  if (primary === 'zh') return 'zh';
+  if (primary === 'ja') return 'ja';
+  if (primary === 'ko') return 'ko';
+  if (primary === 'en') return 'en';
+
+  return null;
+}
+
+function getBrowserUiLanguage(): string | undefined {
+  const extensionGlobal = globalThis as typeof globalThis & ExtensionGlobal;
+  return extensionGlobal.browser?.i18n?.getUILanguage?.()
+    ?? extensionGlobal.chrome?.i18n?.getUILanguage?.();
+}
+
+function getDefaultPopupLanguage(): PopupLanguage {
+  const candidates = [
+    getBrowserUiLanguage(),
+    ...((typeof navigator === 'undefined' ? [] : navigator.languages) || []),
+    typeof navigator === 'undefined' ? undefined : navigator.language,
+  ];
+
+  for (const candidate of candidates) {
+    const language = normalizePopupLanguage(candidate);
+    if (language) return language;
+  }
+
+  return 'en';
+}
+
 export function createDefaultPromptConfig(): PromptConfig {
   const platforms: PopupPlatform[] = [
     {
@@ -98,7 +132,7 @@ export function createDefaultPromptConfig(): PromptConfig {
     rules,
     platforms,
     settings: {
-      language: 'en',
+      language: getDefaultPopupLanguage(),
       triggerVisibility: 'newConversationOnly',
       uiTheme: 'auto',
     },
@@ -116,6 +150,9 @@ interface ExtensionStorageChange {
 
 interface ExtensionGlobal {
   browser?: {
+    i18n?: {
+      getUILanguage?(): string;
+    };
     runtime?: {
       id?: string;
     };
@@ -128,6 +165,9 @@ interface ExtensionGlobal {
     };
   };
   chrome?: {
+    i18n?: {
+      getUILanguage?(): string;
+    };
     runtime?: {
       id?: string;
     };
