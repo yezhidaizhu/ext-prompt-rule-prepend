@@ -395,8 +395,8 @@ function handlePanelClick(event: MouseEvent) {
             class="popup-language-select"
             :aria-label="t('popup.settings.language')"
           >
-            <option value="zh">{{ t('popup.settings.languages.zh') }}</option>
             <option value="en">{{ t('popup.settings.languages.en') }}</option>
+            <option value="zh">{{ t('popup.settings.languages.zh') }}</option>
             <option value="ja">{{ t('popup.settings.languages.ja') }}</option>
             <option value="ko">{{ t('popup.settings.languages.ko') }}</option>
           </select>

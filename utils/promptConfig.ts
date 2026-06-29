@@ -79,7 +79,7 @@ export function createDefaultPromptConfig(): PromptConfig {
     rules,
     platforms,
     settings: {
-      language: 'zh',
+      language: 'en',
       triggerVisibility: 'newConversationOnly',
       uiTheme: 'auto',
     },

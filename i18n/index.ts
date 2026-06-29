@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n';
 import type { PopupLanguage } from '@/types/promptConfig';
 
-export const defaultLanguage: PopupLanguage = 'zh';
+export const defaultLanguage: PopupLanguage = 'en';
 
 export const messages = {
   zh: {
@@ -49,8 +49,8 @@ export const messages = {
         },
         language: '语言',
         languages: {
-          zh: '中文',
           en: 'English',
+          zh: '中文',
           ja: '日本語',
           ko: '한국어',
         },
@@ -116,7 +116,7 @@ export const messages = {
       enabledNeedsRule: '已开启注入，请先为当前平台添加一条规则',
       addRuleToEnable: '添加一条规则后即可选择并开启注入',
       enabledNoInjectableRule: '已开启，但当前没有可注入的规则',
-      foldedRules: '规则',
+      foldedRules: 'RULES',
       ruleContent: '规则内容',
       editRule: '编辑规则',
       createDialog: {
@@ -181,8 +181,8 @@ export const messages = {
         },
         language: 'Language',
         languages: {
-          zh: '中文',
           en: 'English',
+          zh: '中文',
           ja: '日本語',
           ko: '한국어',
         },
@@ -248,7 +248,7 @@ export const messages = {
       enabledNeedsRule: 'Injection is enabled. Add a rule for this platform first.',
       addRuleToEnable: 'Add a rule to select and enable injection.',
       enabledNoInjectableRule: 'Enabled, but no injectable rule is available.',
-      foldedRules: 'Rules',
+      foldedRules: 'RULES',
       ruleContent: 'Rule content',
       editRule: 'Edit rule',
       createDialog: {
@@ -313,8 +313,8 @@ export const messages = {
         },
         language: '言語',
         languages: {
-          zh: '中文',
           en: 'English',
+          zh: '中文',
           ja: '日本語',
           ko: '한국어',
         },
@@ -380,7 +380,7 @@ export const messages = {
       enabledNeedsRule: '注入は有効です。先にこのプラットフォーム用のルールを追加してください。',
       addRuleToEnable: 'ルールを追加すると選択して注入を有効化できます。',
       enabledNoInjectableRule: '有効ですが、注入できるルールがありません。',
-      foldedRules: 'ルール',
+      foldedRules: 'RULES',
       ruleContent: 'ルール内容',
       editRule: 'ルールを編集',
       createDialog: {
@@ -445,8 +445,8 @@ export const messages = {
         },
         language: '언어',
         languages: {
-          zh: '中文',
           en: 'English',
+          zh: '中文',
           ja: '日本語',
           ko: '한국어',
         },
@@ -512,7 +512,7 @@ export const messages = {
       enabledNeedsRule: '주입이 켜져 있습니다. 먼저 현재 플랫폼에 규칙을 추가하세요.',
       addRuleToEnable: '규칙을 추가하면 선택하고 주입을 켤 수 있습니다.',
       enabledNoInjectableRule: '켜져 있지만 주입할 수 있는 규칙이 없습니다.',
-      foldedRules: '규칙',
+      foldedRules: 'RULES',
       ruleContent: '규칙 내용',
       editRule: '규칙 편집',
       createDialog: {
