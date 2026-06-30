@@ -11,7 +11,7 @@ export default defineConfig({
     action: {
       default_title: '__MSG_extName__',
     },
-    permissions: ['storage', 'tabs', 'scripting'],
+    permissions: ['storage'],
     host_permissions: [
       '*://chat.deepseek.com/*',
       '*://chatgpt.com/*',
